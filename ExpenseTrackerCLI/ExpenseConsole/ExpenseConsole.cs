@@ -1,7 +1,8 @@
-﻿using ExpenseTrackerCLI.ConsoleServices;
+﻿using ExpenseTrackerCLI.Common;
+using ExpenseTrackerCLI.ConsoleServices;
 using ExpenseTrackerCLI.Entities;
-using ExpenseTrackerCLI.Services;
 using ExpenseTrackerCLI.Helpers;
+using ExpenseTrackerCLI.Services;
 namespace ExpenseTrackerCLI.ExpenseConsole;
 
 public class ExpenseConsole
@@ -9,6 +10,8 @@ public class ExpenseConsole
     private readonly IExpensesServices _expensesServices;
     private readonly IConsoleService _consoleService;
     private IDictionary<string, Action> _menuActions;
+
+    private ViewExpensesHelper ViewExpensesHelper { get; set; }
 
     public ExpenseConsole(IExpensesServices expensesServices, IConsoleService consoleService)
     {
@@ -20,8 +23,8 @@ public class ExpenseConsole
             { "2", ViewExpenses },
             { "3", UpdateExpense },
             { "4", DeleteExpense },
-            { "5", () => Environment.Exit(0) }
         };
+        ViewExpensesHelper = new ViewExpensesHelper(_consoleService);
     }
     public void ExecuteExpenseConsole(string choice)
     {
@@ -45,6 +48,54 @@ public class ExpenseConsole
     private void ViewExpenses()
     {
         var expenses = _expensesServices.GetAllExpenses();
+
+        if (!expenses.Any())
+        {
+            _consoleService.Write("No expenses found.");
+            return;
+        }
+
+        _consoleService.Write("Filter by a specific year?(Y/N)");
+        var answerYear = _consoleService.Read();
+        if (answerYear.ToLower().Equals("y"))
+        {
+            expenses = ViewExpensesHelper.ChooseYearFilter(expenses);
+        }
+
+        var answerMonth = _consoleService.GetValueString("Filter by a specific month?(Y/N)");
+        if (answerMonth.ToLower().Equals("y"))
+        {
+            int? selectYear;
+
+            if (expenses.Any())
+            {
+                selectYear = expenses.Max(d => d.CreatedExpense.Year);
+            }
+            expenses = ViewExpensesHelper.ChooseTheMonthFilter(expenses, selectYear = null);
+        }
+        if(_consoleService.GetValueString("Do you wanna View the expenses by range of amount? y/n").Equals("y"))
+        {
+
+            expenses = ViewExpensesHelper.ChooseExpensesByAmountRange(expenses);
+        }
+
+        var lastExpensesToDisplay = _consoleService.GetValueString("Do you want to see a specific number of expenses?" +
+            " Yes -> Enter a number, No -> Please, press enter.");
+
+        int number = 0;
+        if (!string.IsNullOrEmpty(lastExpensesToDisplay))
+        {
+            try
+            {
+                number = GetValueClass.GetExpenseInt(lastExpensesToDisplay);
+                expenses = expenses.OrderByDescending(p => p.Id).Take(number).ToList();
+            }
+            catch (Exception ex)
+            {
+                _consoleService.Write(ex.Message);
+            }
+        }
+
         if (!expenses.Any())
         {
             _consoleService.Write("No expenses found.");
@@ -55,7 +106,6 @@ public class ExpenseConsole
             _consoleService.DisplayExpense(expense);
         }
     }
-
     private void AddExpense()
     {
         var title = _consoleService.GetValueString("Enter Title:");
@@ -150,20 +200,20 @@ public class ExpenseConsole
             return;
         }
         var titleForUpdate = string.Empty;
-        if (ChangeFieldAnswer("title"))
+        if (ViewExpensesHelper.ChangeFieldAnswer("title"))
         {
             titleForUpdate = _consoleService.GetValueString("Enter new Title :");
         }
 
         var descriptionForUpdate = string.Empty;
-        if (ChangeFieldAnswer("description"))
+        if (ViewExpensesHelper.ChangeFieldAnswer("description"))
         {
             descriptionForUpdate = _consoleService.GetValueString("Enter new Description :");
         }
 
         var amountFromInput = string.Empty;
         var amountForUpdate = expensesFromRepo.Amount;
-        if (ChangeFieldAnswer("amount"))
+        if (ViewExpensesHelper.ChangeFieldAnswer("amount"))
         {
             amountFromInput = _consoleService.GetValueString("Enter new Amount :");
             try
@@ -178,7 +228,7 @@ public class ExpenseConsole
         }
 
         var parsedExpenseType = expensesFromRepo.ExpenseType;
-        if (ChangeFieldAnswer("expense type"))
+        if (ViewExpensesHelper.ChangeFieldAnswer("expense type"))
         {
             _consoleService.Write("Available types: " + string.Join(", ", Enum.GetNames<ExpenseType>()));
             var expenseTypeFromInput = _consoleService.GetValueString("Enter type expense :");
@@ -212,10 +262,5 @@ public class ExpenseConsole
         {
             _consoleService.Write("Expense updated successfully.");
         }
-    }
-    public bool ChangeFieldAnswer(string field)
-    {
-        var answer = _consoleService.GetValueString($"Do you want to change this {field}? (y/n):");
-        return answer.Equals("y", StringComparison.OrdinalIgnoreCase);
     }
 }

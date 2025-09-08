@@ -10,6 +10,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 class Program
 {
@@ -21,6 +22,16 @@ class Program
             .Build();
 
         var services = new ServiceCollection();
+        services.AddLogging(config =>
+        {
+            config.ClearProviders();
+            config.AddSimpleConsole(options =>
+            {
+                options.IncludeScopes = true;
+                options.SingleLine = true;
+                options.TimestampFormat = "hh:mm:ss ";
+            });
+        });
 
         services.AddDbContext<ExpensesDB>(option =>
                     option.UseSqlServer(confing.GetConnectionString("ExpensesDB")));

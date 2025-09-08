@@ -34,6 +34,7 @@ public class ExpensesDB : DbContext
 
         modelBuilder.Entity<Expense>()
             .Property(e => e.Amount)
-            .IsRequired();
+            .IsRequired()
+            .HasColumnType("decimal(18,2)");
     }
 }
