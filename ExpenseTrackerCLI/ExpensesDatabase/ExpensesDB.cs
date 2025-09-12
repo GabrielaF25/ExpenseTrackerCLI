@@ -3,10 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTrackerCLI.ExpensesDatabase;
 
-public class ExpensesDB : DbContext
+public class ExpensesDB(DbContextOptions<ExpensesDB> options) : DbContext(options)
 {
-    public ExpensesDB(DbContextOptions<ExpensesDB> options) : base(options){ }
-
     public DbSet<Expense> Expenses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -36,5 +34,9 @@ public class ExpensesDB : DbContext
             .Property(e => e.Amount)
             .IsRequired()
             .HasColumnType("decimal(18,2)");
+
+        modelBuilder.Entity<Expense>()
+           .Property(e => e.BaseCurrency)
+           .IsRequired();
     }
 }

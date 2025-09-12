@@ -4,14 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTrackerCLI.Repositories;
 
-public class ExpensesRepository : IExpensesRepository
+public class ExpensesRepository(ExpensesDB context) : IExpensesRepository
 {
-    private readonly ExpensesDB _context;
+    private readonly ExpensesDB _context = context;
 
-    public ExpensesRepository(ExpensesDB context)
-    {
-        _context = context;
-    }
     public void AddExpense(Expense expense)
     {
        _context.Expenses.Add(expense);

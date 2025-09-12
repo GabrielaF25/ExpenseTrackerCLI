@@ -2,16 +2,13 @@
 using ExpenseTrackerCLI.Entities;
 using System.Globalization;
 
-namespace ExpenseTrackerCLI.Common;
+namespace ExpenseTrackerCLI.ConsoleApp;
 
-public  class ViewExpensesHelper
+public  class ViewExpensesHelper(IConsoleService consoleService)
 {
-    private readonly IConsoleService _consoleService;
-    public ViewExpensesHelper(IConsoleService consoleService)
-    {
-        _consoleService = consoleService;
-    }
-    public  bool ChangeFieldAnswer(string field)
+    private readonly IConsoleService _consoleService = consoleService;
+
+    public bool ChangeFieldAnswer(string field)
     {
         var answer = _consoleService.GetValueString($"Do you want to change this {field}? (y/n):");
         return answer.Equals("y", StringComparison.OrdinalIgnoreCase);
@@ -43,7 +40,7 @@ public  class ViewExpensesHelper
         }
         else
         {
-            int cap = (yearToUse == now.Year) ? now.Month : 12;
+            int cap = yearToUse == now.Year ? now.Month : 12;
 
             monthToUse = expenses
                 .Where(e => e.CreatedExpense.Year == yearToUse && e.CreatedExpense.Month <= cap)
@@ -61,16 +58,22 @@ public  class ViewExpensesHelper
     {
         var answerStartRangeOfAmount = _consoleService.GetValueString("Please enter the start of the amount range");
         var answerEndRangeOfAmount = _consoleService.GetValueString("Please enter the end of the amount range");
+
         decimal startRangeAmount = 0;
         decimal endRangeAmount = 0;
+
         var culture = CultureInfo.CurrentCulture;
-        bool startSucces = (!string.IsNullOrWhiteSpace(answerStartRangeOfAmount) && decimal.TryParse(answerStartRangeOfAmount,NumberStyles.Number, culture, out startRangeAmount));
-        bool endSucces = (!string.IsNullOrWhiteSpace(answerEndRangeOfAmount) && decimal.TryParse(answerEndRangeOfAmount, NumberStyles.Number, culture, out endRangeAmount));
+
+        bool startSucces = !string.IsNullOrWhiteSpace(answerStartRangeOfAmount) && 
+            decimal.TryParse(answerStartRangeOfAmount,NumberStyles.Number, culture, out startRangeAmount);
+        bool endSucces = !string.IsNullOrWhiteSpace(answerEndRangeOfAmount) &&
+            decimal.TryParse(answerEndRangeOfAmount, NumberStyles.Number, culture, out endRangeAmount);
 
         if (!startSucces)
         {
             _consoleService.Write($"Sorry! But {answerStartRangeOfAmount} is not valid ");
         }
+
         if (!endSucces) 
         {
             _consoleService.Write($"Sorry! But {answerEndRangeOfAmount} is not valid ");
@@ -83,6 +86,7 @@ public  class ViewExpensesHelper
 
         if (startSucces) expenses = expenses.Where(e => e.Amount >= startRangeAmount);
         if (endSucces) expenses = expenses.Where(e => e.Amount <= endRangeAmount);
+
         return expenses;
     } 
 }

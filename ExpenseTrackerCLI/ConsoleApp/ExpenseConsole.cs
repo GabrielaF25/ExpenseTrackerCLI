@@ -1,19 +1,21 @@
 ﻿using ExpenseTrackerCLI.Common;
 using ExpenseTrackerCLI.ConsoleServices;
 using ExpenseTrackerCLI.Entities;
+using ExpenseTrackerCLI.ExchangeRate;
 using ExpenseTrackerCLI.Helpers;
 using ExpenseTrackerCLI.Services;
-namespace ExpenseTrackerCLI.ExpenseConsole;
+namespace ExpenseTrackerCLI.ConsoleApp;
 
 public class ExpenseConsole
 {
     private readonly IExpensesServices _expensesServices;
     private readonly IConsoleService _consoleService;
-    private IDictionary<string, Action> _menuActions;
+    private readonly Dictionary<string, Action> _menuActions;
+    private readonly IExchangeRateProvider _expenseRate;
 
     private ViewExpensesHelper ViewExpensesHelper { get; set; }
 
-    public ExpenseConsole(IExpensesServices expensesServices, IConsoleService consoleService)
+    public ExpenseConsole(IExpensesServices expensesServices, IConsoleService consoleService, IExchangeRateProvider expenseRate)
     {
         _expensesServices = expensesServices;
         _consoleService = consoleService;
@@ -23,8 +25,10 @@ public class ExpenseConsole
             { "2", ViewExpenses },
             { "3", UpdateExpense },
             { "4", DeleteExpense },
+            { "5", ConvertExpenseCurrency },
         };
         ViewExpensesHelper = new ViewExpensesHelper(_consoleService);
+        _expenseRate = expenseRate;
     }
     public void ExecuteExpenseConsole(string choice)
     {
@@ -88,7 +92,7 @@ public class ExpenseConsole
             try
             {
                 number = GetValueClass.GetExpenseInt(lastExpensesToDisplay);
-                expenses = expenses.OrderByDescending(p => p.Id).Take(number).ToList();
+                expenses = [..expenses.OrderByDescending(p => p.Id).Take(number)];
             }
             catch (Exception ex)
             {
@@ -113,7 +117,7 @@ public class ExpenseConsole
         var description = _consoleService.GetValueString("Enter Description:");
 
         var amountFromInput = _consoleService.GetValueString("Enter Amount:");
-        var amount = 0m;
+        decimal amount;
         try
         {
             amount = GetValueClass.GetExpenseDecimal(amountFromInput);
@@ -159,7 +163,7 @@ public class ExpenseConsole
     private void DeleteExpense()
     {
         var id = _consoleService.GetValueString("Enter Expense ID to delete:");
-        var parsedId = 0;
+        int parsedId;
         try
         {
             parsedId = GetValueClass.GetExpenseInt(id);
@@ -182,7 +186,7 @@ public class ExpenseConsole
     private void UpdateExpense()
     {
         var id = _consoleService.GetValueString("Enter Expense ID to update:");
-        var parsedId = 0;
+        int parsedId;
         try
         {
             parsedId = GetValueClass.GetExpenseInt(id);
@@ -211,7 +215,7 @@ public class ExpenseConsole
             descriptionForUpdate = _consoleService.GetValueString("Enter new Description :");
         }
 
-        var amountFromInput = string.Empty;
+        string amountFromInput;
         var amountForUpdate = expensesFromRepo.Amount;
         if (ViewExpensesHelper.ChangeFieldAnswer("amount"))
         {
@@ -262,5 +266,42 @@ public class ExpenseConsole
         {
             _consoleService.Write("Expense updated successfully.");
         }
+    }
+    public void ConvertExpenseCurrency()
+    {
+        var idForExpense = _consoleService.GetValueString("Please enter the id for  the expense to convert currency from Ron:");
+        int id;
+        try
+        {
+            id = GetValueClass.GetExpenseInt(idForExpense);
+        }
+        catch(Exception ex)
+        {
+            _consoleService.Write(ex.Message);
+            return;
+        }
+
+        var currencyFromInput = _consoleService.GetValueString("Please enter the currency for convert:");
+        CurrencyType currency;
+
+        try
+        {   
+            currency = GetValueClass.GetExpenseCurrency(currencyFromInput);
+        }
+        catch(Exception ex) 
+        {
+            _consoleService.Write(ex.Message);
+            return;
+        }
+        ResultResponse resultResponse = _expensesServices.ConvertExpenseCurrencyFromRon(id, currency);
+
+        if (!resultResponse.IsSuccess)
+        {
+             _consoleService.Write(resultResponse.Message);
+            return;
+        }
+        _expensesServices.Update(resultResponse.Expense!);
+
+        _consoleService.Write("The procces was a success!");
     }
 }

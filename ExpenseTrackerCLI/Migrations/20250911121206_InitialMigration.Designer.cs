@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExpenseTrackerCLI.Migrations
 {
     [DbContext(typeof(ExpensesDB))]
-    [Migration("20250828134131_AddedAmount")]
-    partial class AddedAmount
+    [Migration("20250911121206_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,8 +36,14 @@ namespace ExpenseTrackerCLI.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime>("CreatedExpense")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("BaseCurrency")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedExpense")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Currency")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -47,6 +53,9 @@ namespace ExpenseTrackerCLI.Migrations
                     b.Property<string>("ExpenseType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("FixRateDate")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Title")
                         .IsRequired()

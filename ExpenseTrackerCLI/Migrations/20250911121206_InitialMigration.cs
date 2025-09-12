@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ExpenseTrackerCLI.Migrations
 {
     /// <inheritdoc />
-    public partial class FirstMigration : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,8 +19,12 @@ namespace ExpenseTrackerCLI.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Currency = table.Column<int>(type: "int", nullable: false),
+                    BaseCurrency = table.Column<int>(type: "int", nullable: false),
                     ExpenseType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedExpense = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    FixRateDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedExpense = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {

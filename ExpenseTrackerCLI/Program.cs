@@ -1,7 +1,8 @@
 ﻿// See httpsusing GabrielasLibrary.ConsoleApp;
+using ExpenseTrackerCLI.ConsoleApp;
 using ExpenseTrackerCLI.ConsoleServices;
 using ExpenseTrackerCLI.Entities;
-using ExpenseTrackerCLI.ExpenseConsole;
+using ExpenseTrackerCLI.ExchangeRate;
 using ExpenseTrackerCLI.ExpensesDatabase;
 using ExpenseTrackerCLI.Repositories;
 using ExpenseTrackerCLI.Services;
@@ -35,13 +36,14 @@ class Program
 
         services.AddDbContext<ExpensesDB>(option =>
                     option.UseSqlServer(confing.GetConnectionString("ExpensesDB")));
-
         services.AddScoped<IExpensesRepository, ExpensesRepository>();
-        services.AddScoped<IExpensesServices,ExpensesServices>();
+
+        services.AddScoped<IExpensesServices, ExpensesServices>();
         services.AddScoped<IConsoleService, ConsoleService>();
         services.AddScoped<ExpenseConsole>();
         services.AddScoped<IValidator<Expense>,ValidateExpenses>();
         services.AddScoped<ExecutorExpenseConsole>();
+        services.AddScoped<IExchangeRateProvider, ExchangeRateProvider>();
 
         var serviceProvider = services.BuildServiceProvider();
 

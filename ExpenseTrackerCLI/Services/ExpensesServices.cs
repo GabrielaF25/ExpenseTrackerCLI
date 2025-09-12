@@ -1,57 +1,52 @@
 ﻿using ExpenseTrackerCLI.Common;
 using ExpenseTrackerCLI.Entities;
+using ExpenseTrackerCLI.ExchangeRate;
 using ExpenseTrackerCLI.Repositories;
 using FluentValidation;
 
 namespace ExpenseTrackerCLI.Services;
 
-public class ExpensesServices : IExpensesServices
+public class ExpensesServices(IExpensesRepository repository, IValidator<Expense> validator, IExchangeRateProvider exchangeRateProvider) : IExpensesServices
 {
-    private readonly IExpensesRepository _repository;
-    private readonly IValidator<Expense> _validator;
-
-    public ExpensesServices(IExpensesRepository repository, IValidator<Expense> validator)
-    {
-       _repository = repository;
-        _validator = validator;
-    }
-     
-    public ResultClass  AddExpenses(Expense expenseToAdd)
+    private readonly IExpensesRepository _repository = repository;
+    private readonly IValidator<Expense> _validator = validator;
+    private readonly IExchangeRateProvider _exchangeRateProvider = exchangeRateProvider;
+    public ResultResponse  AddExpenses(Expense expenseToAdd)
     {
         if(expenseToAdd == null)
         {
-            return ResultClass.Failure("Expense is null");
+            return ResultResponse.Failure("Expense is null");
         }
 
         var validationResult = _validator.Validate(expenseToAdd);
-        if (!validationResult.IsValid) return ResultClass.Failure(string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage)));
+        if (!validationResult.IsValid) return ResultResponse.Failure(string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage)));
 
         _repository.AddExpense(expenseToAdd);
-        return ResultClass.Success();
+        return ResultResponse.Success(expenseToAdd);
     }
 
-    public ResultClass RemoveExpenses(int idFromParameter)
+    public ResultResponse RemoveExpenses(int idFromParameter)
     {
         var expenseToRemove = _repository.GetExpenseById(idFromParameter);
         if (expenseToRemove == null)
         {
-            return ResultClass.Failure("Sorry! Expense not found in database.");
+            return ResultResponse.Failure("Sorry! Expense not found in database.");
         }
         _repository.RemoveExpense(expenseToRemove);
-        return ResultClass.Success();
+        return ResultResponse.Success();
     }
 
-    public ResultClass Update(Expense expenseToUpdate) 
+    public ResultResponse Update(Expense expenseToUpdate) 
     {
         if (expenseToUpdate == null)
         {
-            return ResultClass.Failure("Expense is null!");
+            return ResultResponse.Failure("Expense is null!");
         }
 
         var expenseFromDb = _repository.GetExpenseById(expenseToUpdate.Id);
         if (expenseFromDb == null) 
         {
-            return ResultClass.Failure("Expense not found!");
+            return ResultResponse.Failure("Expense not found!");
         }
 
         if(!string.IsNullOrWhiteSpace(expenseToUpdate.Title)) 
@@ -65,11 +60,12 @@ public class ExpensesServices : IExpensesServices
         }
 
         expenseFromDb.ExpenseType = expenseToUpdate.ExpenseType;
-
         expenseFromDb.Amount = expenseToUpdate.Amount;
+        expenseFromDb.Currency = expenseToUpdate.Currency;
+        expenseFromDb.BaseCurrency = expenseToUpdate.BaseCurrency;
 
         _repository.UpdateExpense(expenseFromDb);
-        return ResultClass.Success();
+        return ResultResponse.Success();
     }
 
     public IEnumerable<Expense> GetAllExpenses()
@@ -80,5 +76,41 @@ public class ExpensesServices : IExpensesServices
     public Expense? GetExpenseById(int id)
     {
        return _repository.GetExpenseById(id);
+    }
+
+    public ResultResponse ConvertExpenseCurrencyFromRon(int id, CurrencyType currencyType)
+    {
+        var expenseToChangeCurrency = _repository.GetExpenseById(id);
+
+        if (expenseToChangeCurrency == null)
+        {
+            return ResultResponse.Failure($"The expense with id {id} does not exist!");
+        }
+
+        var result = _exchangeRateProvider.GetValue(currencyType);
+
+        expenseToChangeCurrency.Amount = Math.Round(expenseToChangeCurrency.Amount / result, 4);
+        expenseToChangeCurrency.Currency = currencyType;
+        expenseToChangeCurrency.FixRateDate = DateTimeOffset.Now;
+
+        return ResultResponse.Success(expenseToChangeCurrency);
+    }
+
+    public ResultResponse ConvertExpenseCurrencyToRon(int id)
+    {
+        var expenseToChangeCurrency = _repository.GetExpenseById(id);
+
+        if (expenseToChangeCurrency == null)
+        {
+            return ResultResponse.Failure($"The expense with id {id} does not exist!");
+        }
+
+        var result = _exchangeRateProvider.GetValue(expenseToChangeCurrency.Currency);
+
+        expenseToChangeCurrency.Amount = Math.Round(expenseToChangeCurrency.Amount * result, 4);
+        expenseToChangeCurrency.Currency = CurrencyType.Ron;
+        expenseToChangeCurrency.FixRateDate = DateTimeOffset.Now;
+
+        return ResultResponse.Success();
     }
 }

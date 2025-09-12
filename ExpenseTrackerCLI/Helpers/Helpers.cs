@@ -30,4 +30,13 @@ public static class GetValueClass
         }
         return expenseAmount;
     }
+
+    public static CurrencyType GetExpenseCurrency(string currencyFromInput)
+    {
+        if (!Enum.TryParse<CurrencyType>(currencyFromInput, true, out var currency) || !Enum.IsDefined(typeof(CurrencyType), currency))
+        {
+            throw new ArgumentException($"Sorry! Type {currencyFromInput} is not valid.");
+        }
+        return currency;
+    }
 }
