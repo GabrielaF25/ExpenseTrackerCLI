@@ -35,6 +35,11 @@ public class ExpenseServiceApi : IExpenseServiceApi
 
     public ResultResponse RemoveExpense(int id)
     {
+        var expenseFromDb = GetExpenseById(id);
+        if (expenseFromDb is null)
+        {
+            return ResultResponse.Failure($"The expense with id: {id} was not found.");
+        }
         ResultResponse result = _expensesServices.RemoveExpenses(id);
 
         return result;
@@ -42,23 +47,51 @@ public class ExpenseServiceApi : IExpenseServiceApi
 
     public ResultResponse AddExpense(ExpenseForCreationDto forCreationDto)
     {
-        var bookForD = _mapper.Map<Expense>(forCreationDto);
+        var expenseForD = _mapper.Map<Expense>(forCreationDto);
 
-        ResultResponse result = _expensesServices.AddExpenses(bookForD);
-
-        var bookDto = _mapper.Map<ExpenseDto>(result.Expense);
-
+        ResultResponse result = _expensesServices.AddExpenses(expenseForD);
+        
         return result;
     }
 
     public ResultResponse UpdateExpense(int id, ExpenseForCreationDto forCreationDto)
     {
-        var bookForD = _mapper.Map<Expense>(forCreationDto);
+        var expenseExists = GetExpenseById(id);
+        if (expenseExists is null)
+        {
+            return ResultResponse.Failure($"The expense with id: {id} was not found.");
+        }
 
-        bookForD.Id = id;
-        ResultResponse result = _expensesServices.Update(bookForD);
+        var expenseForDB = _mapper.Map<Expense>(forCreationDto);
 
-        var bookDto = _mapper.Map<ExpenseDto>(result.Expense);
+        expenseForDB.Id = id;
+        ResultResponse result = _expensesServices.Update(expenseForDB);
+
+        return result;
+    }
+
+    public ResultResponse ConvertExpenseCurrencyFromRonTo(int id, CurrencyType currencyType)
+    {
+        var expenseExists = GetExpenseById(id);
+        if (expenseExists is null)
+        {
+            return ResultResponse.Failure($"The expense with id: {id} was not found.");
+        }
+
+        var result = _expensesServices.ConvertExpenseCurrencyFromRon(id, currencyType);
+
+        return result;
+    }
+
+    public ResultResponse ConvertExpenseCurrencyFromToRon(int id)
+    {
+        var expenseExists = GetExpenseById(id);
+        if (expenseExists != null)
+        {
+            return ResultResponse.Failure($"The expense with id: {id} was not found.");
+        }
+
+        var result = _expensesServices.ConvertExpenseCurrencyToRon(id);
 
         return result;
     }

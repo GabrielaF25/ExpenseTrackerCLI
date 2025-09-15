@@ -1,4 +1,5 @@
-﻿using ExpenseTrackerApi.Dto;
+﻿using AutoMapper;
+using ExpenseTrackerApi.Dto;
 using ExpenseTrackerApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,11 @@ namespace ExpenseTrackerApi.Controllers
     public class ExpenseController : ControllerBase
     {
         private readonly IExpenseServiceApi expenseService;
-
-        public ExpenseController(IExpenseServiceApi service)
+        private readonly IMapper _mapper;
+        public ExpenseController(IExpenseServiceApi service, IMapper mapper)
         {
             expenseService = service;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -45,7 +47,8 @@ namespace ExpenseTrackerApi.Controllers
                 return BadRequest(result.Message);
             }
 
-            return CreatedAtRoute("GetExpenseById", new { result.Expense!.Id }, result.Expense);
+            var expenseDto = _mapper.Map<ExpenseDto>(result.Expense);
+            return CreatedAtRoute("GetExpenseById", new { result.Expense!.Id }, expenseDto);
         }
 
 
@@ -56,8 +59,10 @@ namespace ExpenseTrackerApi.Controllers
 
             if (!result.IsSuccess)
             {
-                if (result.Message.Contains("found", StringComparison.InvariantCultureIgnoreCase)) return NotFound(result.Message);
-
+                if (result.Message.Contains($"The expense with id {id} does not exist!"))
+                {
+                    return NotFound($"{result.Message}");
+                }
                 return BadRequest(result.Message);
             }
 
@@ -69,6 +74,10 @@ namespace ExpenseTrackerApi.Controllers
             var result = expenseService.RemoveExpense(id);
             if (!result.IsSuccess)
             {
+                if (result.Message.Contains($"The expense with id {id} does not exist!"))
+                {
+                    return NotFound($"{result.Message}");
+                }
                 return BadRequest(result.Message);
             }
 

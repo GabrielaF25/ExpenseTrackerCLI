@@ -6,10 +6,10 @@ using FluentValidation;
 
 namespace ExpenseTrackerCLI.Services;
 
-public class ExpensesServices(IExpensesRepository repository, IValidator<Expense> validator, IExchangeRateProvider exchangeRateProvider) : IExpensesServices
+public class ExpensesServices(IExpensesRepository repository, IValidator<Expense?> validator, IExchangeRateProvider exchangeRateProvider) : IExpensesServices
 {
     private readonly IExpensesRepository _repository = repository;
-    private readonly IValidator<Expense> _validator = validator;
+    private readonly IValidator<Expense?> _validator = validator;
     private readonly IExchangeRateProvider _exchangeRateProvider = exchangeRateProvider;
     public ResultResponse  AddExpenses(Expense expenseToAdd)
     {
@@ -60,7 +60,10 @@ public class ExpensesServices(IExpensesRepository repository, IValidator<Expense
         }
 
         expenseFromDb.ExpenseType = expenseToUpdate.ExpenseType;
+        if(expenseToUpdate.Amount != 0)
+        {
         expenseFromDb.Amount = expenseToUpdate.Amount;
+        }
         expenseFromDb.Currency = expenseToUpdate.Currency;
         expenseFromDb.BaseCurrency = expenseToUpdate.BaseCurrency;
 
@@ -92,6 +95,12 @@ public class ExpensesServices(IExpensesRepository repository, IValidator<Expense
         expenseToChangeCurrency.Amount = Math.Round(expenseToChangeCurrency.Amount / result, 4);
         expenseToChangeCurrency.Currency = currencyType;
         expenseToChangeCurrency.FixRateDate = DateTimeOffset.Now;
+        
+        var resultFromUpdate = Update(expenseToChangeCurrency);
+        if (!resultFromUpdate.IsSuccess)
+        {
+            return resultFromUpdate;
+        }
 
         return ResultResponse.Success(expenseToChangeCurrency);
     }
@@ -110,6 +119,12 @@ public class ExpensesServices(IExpensesRepository repository, IValidator<Expense
         expenseToChangeCurrency.Amount = Math.Round(expenseToChangeCurrency.Amount * result, 4);
         expenseToChangeCurrency.Currency = CurrencyType.Ron;
         expenseToChangeCurrency.FixRateDate = DateTimeOffset.Now;
+
+        var resultFromUpdate = Update(expenseToChangeCurrency);
+        if (!resultFromUpdate.IsSuccess)
+        {
+            return resultFromUpdate;
+        }
 
         return ResultResponse.Success();
     }

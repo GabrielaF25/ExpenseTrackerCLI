@@ -10,15 +10,15 @@ public class ExpensesRepository(ExpensesDB context) : IExpensesRepository
 
     public void AddExpense(Expense expense)
     {
-       _context.Expenses.Add(expense);
+        _context.Expenses.Add(expense);
         _context.SaveChanges();
     }
 
-    public IEnumerable<Expense> GetAllExpenses() => _context.Expenses.AsNoTracking().ToList();
+    public IEnumerable<Expense> GetAllExpenses() => [.._context.Expenses.AsNoTracking()];
 
     public void RemoveExpense(Expense expense)
     {
-       _context.Expenses.Remove(expense);
+        _context.Expenses.Remove(expense);
         _context.SaveChanges();
     }
 
@@ -28,8 +28,10 @@ public class ExpensesRepository(ExpensesDB context) : IExpensesRepository
 
         expenseFromDB!.Title = expenseFromParameter.Title;
         expenseFromDB.Description = expenseFromParameter.Description;
+        expenseFromDB.Amount = expenseFromParameter.Amount;
         expenseFromDB.ExpenseType = expenseFromParameter.ExpenseType;
         expenseFromDB.CreatedExpense = expenseFromParameter.CreatedExpense;
+
         _context.SaveChanges();
     }
 
