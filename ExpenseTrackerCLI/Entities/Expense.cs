@@ -11,5 +11,4 @@ public class Expense
     public ExpenseType ExpenseType { get; set; }
     public DateTimeOffset? FixRateDate { get; set; }
     public DateTimeOffset CreatedExpense { get; set; } 
-
 }
