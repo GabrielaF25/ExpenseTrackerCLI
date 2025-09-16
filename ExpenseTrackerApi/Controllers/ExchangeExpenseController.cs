@@ -1,8 +1,5 @@
-﻿using ExpenseTrackerApi.Dto;
-using ExpenseTrackerApi.Services;
+﻿using ExpenseTrackerApi.Services;
 using ExpenseTrackerCLI.Entities;
-using ExpenseTrackerCLI.ExchangeRate;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseTrackerApi.Controllers;
