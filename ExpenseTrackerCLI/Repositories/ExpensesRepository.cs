@@ -31,6 +31,9 @@ public class ExpensesRepository(ExpensesDB context) : IExpensesRepository
         expenseFromDB.Amount = expenseFromParameter.Amount;
         expenseFromDB.ExpenseType = expenseFromParameter.ExpenseType;
         expenseFromDB.CreatedExpense = expenseFromParameter.CreatedExpense;
+        expenseFromDB.Currency = expenseFromParameter.Currency;
+        expenseFromDB.BaseCurrency = expenseFromParameter.BaseCurrency;
+        expenseFromDB.FixRateDate = expenseFromParameter.FixRateDate;
 
         _context.SaveChanges();
     }

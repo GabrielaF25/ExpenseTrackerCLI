@@ -1,7 +1,7 @@
 ﻿using ExpenseTrackerCLI.Common;
 using ExpenseTrackerCLI.Entities;
 
-namespace ExpenseTrackerCLI.Services;
+namespace ExpenseTrackerCLI.Services.ExpenseService;
 
 public interface IExpensesServices
 {
@@ -10,6 +10,5 @@ public interface IExpensesServices
     ResultResponse Update(Expense expenseToUpdate);
     IEnumerable<Expense> GetAllExpenses();
     Expense? GetExpenseById(int id);
-    ResultResponse ConvertExpenseCurrencyToRon(int id);
-    ResultResponse ConvertExpenseCurrencyFromRon(int id, CurrencyType currencyType);
+   
 }

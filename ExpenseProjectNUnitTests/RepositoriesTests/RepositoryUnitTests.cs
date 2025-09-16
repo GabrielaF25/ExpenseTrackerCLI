@@ -4,9 +4,9 @@ using ExpenseTrackerCLI.Entities;
 using ExpenseTrackerCLI.ExpensesDatabase;
 using ExpenseTrackerCLI.Repositories;
 
-namespace ExpenseProjectNUnitTests
+namespace ExpenseProjectNUnitTests.RepositoryTest
 {
-    public class Tests
+    public class RepositoryUnitTests
     {
         private IExpensesRepository _repository;
         private ExpensesDB _context;
@@ -115,7 +115,10 @@ namespace ExpenseProjectNUnitTests
                 Description = "Updated Description",
                 Amount = 100,
                 ExpenseType = ExpenseType.UnknownExpenses,
-                CreatedExpense = new DateTime(2014, 06, 19)
+                Currency = CurrencyType.Dollar,
+                BaseCurrency = CurrencyType.Euro,
+                CreatedExpense = new DateTime(2014, 06, 19),
+                FixRateDate = new DateTime(2013, 04, 19)
             };
 
             //Act
@@ -134,8 +137,20 @@ namespace ExpenseProjectNUnitTests
                 Assert.That(expense.Amount, Is.EqualTo(expenseForUpdate.Amount));
                 Assert.That(expense.ExpenseType, Is.EqualTo(expenseForUpdate.ExpenseType));
                 Assert.That(expense.CreatedExpense, Is.EqualTo(expenseForUpdate.CreatedExpense));
+                Assert.That(expense.FixRateDate, Is.EqualTo(expenseForUpdate.FixRateDate));
+                Assert.That(expense.Currency, Is.EqualTo(expenseForUpdate.Currency));
+                Assert.That(expense.BaseCurrency, Is.EqualTo(expenseForUpdate.BaseCurrency));
 
-            });   
+            }); 
+            var expensesFromDb = _context.Expenses.Where( e => e.Id != 2 ).ToList();
+            foreach(var items in expensesFromDb)
+            {
+                Assert.Multiple(() =>
+                { 
+                    Assert.That(items.Title, Is.Not.EqualTo(expenseForUpdate.Title));
+                    Assert.That(items.Description, Is.Not.EqualTo(expenseForUpdate.Description));
+                });
+            }
         }
     }
 }

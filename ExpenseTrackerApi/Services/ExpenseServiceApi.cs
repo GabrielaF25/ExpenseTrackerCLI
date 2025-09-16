@@ -2,17 +2,20 @@
 using ExpenseTrackerApi.Dto;
 using ExpenseTrackerCLI.Common;
 using ExpenseTrackerCLI.Entities;
-using ExpenseTrackerCLI.Services;
+using ExpenseTrackerCLI.Services.ExpenseChange;
+using ExpenseTrackerCLI.Services.ExpenseService;
 
 namespace ExpenseTrackerApi.Services;
 
 public class ExpenseServiceApi : IExpenseServiceApi
 {
     private readonly IExpensesServices _expensesServices;
+    private readonly IExpenseExchangeService _expenseExchangeService;
     private readonly IMapper _mapper;
-    public ExpenseServiceApi(IExpensesServices expensesServices, IMapper mapper)
+    public ExpenseServiceApi(IExpensesServices expensesServices,IExpenseExchangeService expenseExchangeService, IMapper mapper)
     {
         _expensesServices = expensesServices;
+        _expenseExchangeService = expenseExchangeService;
         _mapper = mapper;
     }
     public IEnumerable<ExpenseDto> GetExpenses()
@@ -78,7 +81,7 @@ public class ExpenseServiceApi : IExpenseServiceApi
             return ResultResponse.Failure($"The expense with id: {id} was not found.");
         }
 
-        var result = _expensesServices.ConvertExpenseCurrencyFromRon(id, currencyType);
+        var result = _expenseExchangeService.ConvertExpenseCurrencyFromRon(id, currencyType);
 
         return result;
     }
@@ -91,7 +94,7 @@ public class ExpenseServiceApi : IExpenseServiceApi
             return ResultResponse.Failure($"The expense with id: {id} was not found.");
         }
 
-        var result = _expensesServices.ConvertExpenseCurrencyToRon(id);
+        var result = _expenseExchangeService.ConvertExpenseCurrencyToRon(id);
 
         return result;
     }

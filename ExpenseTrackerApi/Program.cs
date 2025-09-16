@@ -1,10 +1,12 @@
 using ExpenseTrackerApi.Profiles;
 using ExpenseTrackerApi.Services;
+using ExpenseTrackerCLI.DateTimeExchangeRate;
 using ExpenseTrackerCLI.Entities;
 using ExpenseTrackerCLI.ExchangeRate;
 using ExpenseTrackerCLI.ExpensesDatabase;
 using ExpenseTrackerCLI.Repositories;
-using ExpenseTrackerCLI.Services;
+using ExpenseTrackerCLI.Services.ExpenseChange;
+using ExpenseTrackerCLI.Services.ExpenseService;
 using ExpenseTrackerCLI.ValidateEntities;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +27,8 @@ builder.Services.AddDbContext<ExpensesDB>(option =>
 );
 builder.Services.AddScoped<IExpensesRepository, ExpensesRepository>();
 builder.Services.AddScoped<IExchangeRateProvider, ExchangeRateProvider>();
+builder.Services.AddScoped<IDateTimeRate, DateTimeRate>();
+builder.Services.AddScoped<IExpenseExchangeService, ExpenseExchangeService>();
 builder.Services.AddScoped<IExpensesServices, ExpensesServices>();
 builder.Services.AddScoped<IExpenseServiceApi, ExpenseServiceApi>();
 builder.Services.AddScoped<IValidator<Expense>, ValidateExpenses>();

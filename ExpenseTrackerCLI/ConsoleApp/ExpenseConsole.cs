@@ -3,7 +3,8 @@ using ExpenseTrackerCLI.ConsoleServices;
 using ExpenseTrackerCLI.Entities;
 using ExpenseTrackerCLI.ExchangeRate;
 using ExpenseTrackerCLI.Helpers;
-using ExpenseTrackerCLI.Services;
+using ExpenseTrackerCLI.Services.ExpenseChange;
+using ExpenseTrackerCLI.Services.ExpenseService;
 namespace ExpenseTrackerCLI.ConsoleApp;
 
 public class ExpenseConsole
@@ -12,10 +13,11 @@ public class ExpenseConsole
     private readonly IConsoleService _consoleService;
     private readonly Dictionary<string, Action> _menuActions;
     private readonly IExchangeRateProvider _expenseRate;
+    private readonly IExpenseExchangeService _expenseExchangeService;
 
     private ViewExpensesHelper ViewExpensesHelper { get; set; }
 
-    public ExpenseConsole(IExpensesServices expensesServices, IConsoleService consoleService, IExchangeRateProvider expenseRate)
+    public ExpenseConsole(IExpensesServices expensesServices, IConsoleService consoleService, IExchangeRateProvider expenseRate,IExpenseExchangeService expenseExchangeService )
     {
         _expensesServices = expensesServices;
         _consoleService = consoleService;
@@ -29,6 +31,7 @@ public class ExpenseConsole
         };
         ViewExpensesHelper = new ViewExpensesHelper(_consoleService);
         _expenseRate = expenseRate;
+        _expenseExchangeService = expenseExchangeService;
     }
     public void ExecuteExpenseConsole(string choice)
     {
@@ -293,7 +296,7 @@ public class ExpenseConsole
             _consoleService.Write(ex.Message);
             return;
         }
-        ResultResponse resultResponse = _expensesServices.ConvertExpenseCurrencyFromRon(id, currency);
+        ResultResponse resultResponse = _expenseExchangeService.ConvertExpenseCurrencyFromRon(id, currency);
 
         if (!resultResponse.IsSuccess)
         {

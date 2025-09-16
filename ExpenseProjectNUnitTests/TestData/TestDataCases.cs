@@ -53,4 +53,59 @@ public static class TestDataCases
             }
         );
     }
+
+    public static IEnumerable<TestCaseData> TestCasesUpdateExpenseService()
+    {
+        yield return new TestCaseData(
+            new List<Expense>()
+            {
+                new Expense()
+                {
+                    Id = 1,
+                    Title = "",
+                    Description = "Test Description",
+                    Amount = 12m
+                }
+            }, "Test Title", "Test Description", 12m
+        );
+
+        yield return new TestCaseData(
+            new List<Expense>()
+            {
+                new Expense()
+                {
+                    Id = 1,
+                    Title = "Test Title",
+                    Description = "",
+                    Amount = 12m
+                }
+            }, "Test Title", "Test Description", 12m
+        );
+
+        yield return new TestCaseData(
+            new List<Expense>()
+            {
+                new Expense()
+                {
+                    Id = 1,
+                    Title = "Test Title",
+                    Description = "Test Description",
+                    Amount = 0m
+                }
+            }, "Test Title", "Test Description", 12m
+        );
+
+        yield return new TestCaseData(
+            new List<Expense>()
+            {
+                new Expense()
+                {   
+                    Id = 1,
+                    Title = "",
+                    Description = "",
+                    Amount = 0m
+                }
+            }, "Test Title", "Test Description", 12m
+        );
+    }
 }

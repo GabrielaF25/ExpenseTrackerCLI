@@ -1,11 +1,12 @@
 ﻿// See httpsusing GabrielasLibrary.ConsoleApp;
 using ExpenseTrackerCLI.ConsoleApp;
 using ExpenseTrackerCLI.ConsoleServices;
+using ExpenseTrackerCLI.DateTimeExchangeRate;
 using ExpenseTrackerCLI.Entities;
 using ExpenseTrackerCLI.ExchangeRate;
 using ExpenseTrackerCLI.ExpensesDatabase;
 using ExpenseTrackerCLI.Repositories;
-using ExpenseTrackerCLI.Services;
+using ExpenseTrackerCLI.Services.ExpenseService;
 using ExpenseTrackerCLI.ValidateEntities;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,7 @@ class Program
         services.AddScoped<IValidator<Expense>,ValidateExpenses>();
         services.AddScoped<ExecutorExpenseConsole>();
         services.AddScoped<IExchangeRateProvider, ExchangeRateProvider>();
+        services.AddScoped<IDateTimeRate, DateTimeRate>();
 
         var serviceProvider = services.BuildServiceProvider();
 
