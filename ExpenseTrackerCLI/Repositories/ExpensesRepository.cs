@@ -1,6 +1,7 @@
 ﻿using ExpenseTrackerCLI.Entities;
 using ExpenseTrackerCLI.ExpensesDatabase;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 
 namespace ExpenseTrackerCLI.Repositories;
 
@@ -8,23 +9,23 @@ public class ExpensesRepository(ExpensesDB context) : IExpensesRepository
 {
     private readonly ExpensesDB _context = context;
 
-    public void AddExpense(Expense expense)
+    public async Task AddExpense(Expense expense, CancellationToken ct = default)
     {
-        _context.Expenses.Add(expense);
-        _context.SaveChanges();
+       await  _context.Expenses.AddAsync(expense, ct);
+       await  _context.SaveChangesAsync(ct);
     }
 
-    public IEnumerable<Expense> GetAllExpenses() => [.._context.Expenses.AsNoTracking()];
+    public async Task<IEnumerable<Expense>> GetAllExpenses(CancellationToken ct = default) => await _context.Expenses.AsNoTracking().ToListAsync(ct);
 
-    public void RemoveExpense(Expense expense)
+    public async Task  RemoveExpense(Expense expense, CancellationToken ct = default)
     {
         _context.Expenses.Remove(expense);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync(ct);
     }
 
-    public void UpdateExpense(Expense expenseFromParameter)
+    public async Task  UpdateExpense(Expense expenseFromParameter, CancellationToken ct = default)
     {
-        var expenseFromDB = _context.Expenses.FirstOrDefault(ex => ex.Id ==  expenseFromParameter.Id);
+        var expenseFromDB = await _context.Expenses.FirstOrDefaultAsync(ex => ex.Id ==  expenseFromParameter.Id, ct);
 
         expenseFromDB!.Title = expenseFromParameter.Title;
         expenseFromDB.Description = expenseFromParameter.Description;
@@ -35,11 +36,11 @@ public class ExpensesRepository(ExpensesDB context) : IExpensesRepository
         expenseFromDB.BaseCurrency = expenseFromParameter.BaseCurrency;
         expenseFromDB.FixRateDate = expenseFromParameter.FixRateDate;
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync(ct);
     }
 
-    public Expense? GetExpenseById(int id)
+    public async Task<Expense?> GetExpenseById(int id, CancellationToken ct = default)
     {
-        return _context.Expenses.FirstOrDefault( e => e.Id == id );
+        return await _context.Expenses.FirstOrDefaultAsync( e => e.Id == id , ct);
     }
 }

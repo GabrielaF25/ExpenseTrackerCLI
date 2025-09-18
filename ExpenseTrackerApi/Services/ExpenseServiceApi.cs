@@ -18,83 +18,89 @@ public class ExpenseServiceApi : IExpenseServiceApi
         _expenseExchangeService = expenseExchangeService;
         _mapper = mapper;
     }
-    public IEnumerable<ExpenseDto> GetExpenses()
+    public async Task<IEnumerable<ExpenseDto>> GetExpenses()
     {
-        var expenses = _expensesServices.GetAllExpenses();
+        var expenses = await _expensesServices.GetAllExpenses();
 
         var expensesToReturn = _mapper.Map<IEnumerable<ExpenseDto>>(expenses);
 
         return expensesToReturn;
     }
 
-    public ExpenseDto? GetExpenseById(int id)
+    public async Task<ExpenseDto?> GetExpenseById(int id)
     {
-        var expense = _expensesServices.GetExpenseById(id);
+        var expense = await _expensesServices.GetExpenseById(id);
 
         var expenseToReturn = _mapper.Map<ExpenseDto>(expense);
 
         return expenseToReturn;
     }
 
-    public ResultResponse RemoveExpense(int id)
+    public async Task<ResultResponse<Expense>> RemoveExpense(int id)
     {
-        var expenseFromDb = GetExpenseById(id);
+        var expenseFromDb = await GetExpenseById(id);
         if (expenseFromDb is null)
         {
-            return ResultResponse.Failure($"The expense with id: {id} was not found.");
+            return ResultResponse<Expense>.Failure($"The expense with id: {id} was not found.", ErrorType.NotFound);
         }
-        ResultResponse result = _expensesServices.RemoveExpenses(id);
+        ResultResponse<Expense> result = await _expensesServices.RemoveExpenses(id);
 
         return result;
     }
 
-    public ResultResponse AddExpense(ExpenseForCreationDto forCreationDto)
+    public async  Task<ResultResponse<Expense>> AddExpense(ExpenseForCreationDto forCreationDto)
     {
+        if (forCreationDto is null)
+            return ResultResponse<Expense>.Failure("Payload is null.", ErrorType.NullObject);
+
         var expenseForD = _mapper.Map<Expense>(forCreationDto);
 
-        ResultResponse result = _expensesServices.AddExpenses(expenseForD);
+        ResultResponse<Expense> result = await _expensesServices.AddExpenses(expenseForD);
         
         return result;
     }
 
-    public ResultResponse UpdateExpense(int id, ExpenseForCreationDto forCreationDto)
+    public async Task<ResultResponse<Expense>> UpdateExpense(int id, ExpenseForCreationDto forCreationDto)
     {
-        var expenseExists = GetExpenseById(id);
+        if (forCreationDto is null)
+            return ResultResponse<Expense>.Failure("Payload is null.", ErrorType.NullObject);
+
+        var expenseExists =  GetExpenseById(id);
         if (expenseExists is null)
         {
-            return ResultResponse.Failure($"The expense with id: {id} was not found.");
+            return ResultResponse<Expense>.Failure($"The expense with id: {id} was not found.", ErrorType.NotFound);
         }
 
         var expenseForDB = _mapper.Map<Expense>(forCreationDto);
 
         expenseForDB.Id = id;
-        ResultResponse result = _expensesServices.Update(expenseForDB);
+        ResultResponse<Expense> result = await _expensesServices.Update(expenseForDB);
 
         return result;
     }
 
-    public ResultResponse ConvertExpenseCurrencyFromRonTo(int id, CurrencyType currencyType)
+    public async Task<ResultResponse<Expense>> ConvertExpenseCurrencyFromRonTo(int id, CurrencyType currencyType)
     {
         var expenseExists = GetExpenseById(id);
         if (expenseExists is null)
         {
-            return ResultResponse.Failure($"The expense with id: {id} was not found.");
+            return ResultResponse<Expense>.Failure($"The expense with id: {id} was not found.", ErrorType.NotFound);
         }
 
-        var result = _expenseExchangeService.ConvertExpenseCurrencyFromRon(id, currencyType);
+        var result = await _expenseExchangeService.ConvertExpenseCurrencyFromRon(id, currencyType);
 
         return result;
     }
 
-    public ResultResponse ConvertExpenseCurrencyFromToRon(int id)
+    public async Task<ResultResponse<Expense>> ConvertExpenseCurrencyFromToRon(int id)
     {
         var expenseExists = GetExpenseById(id);
-        if (expenseExists != null)
+        if (expenseExists is null)
         {
-            return ResultResponse.Failure($"The expense with id: {id} was not found.");
+            return ResultResponse<Expense>.Failure($"The expense with id: {id} was not found.", ErrorType.NotFound);
         }
 
-        var result = _expenseExchangeService.ConvertExpenseCurrencyToRon(id);
+        var result = await _expenseExchangeService.ConvertExpenseCurrencyToRon(id);
 
         return result;
     }

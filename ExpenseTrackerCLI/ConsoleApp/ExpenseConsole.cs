@@ -52,9 +52,9 @@ public class ExpenseConsole
         }
     }
 
-    private void ViewExpenses()
+    private async void ViewExpenses()
     {
-        var expenses = _expensesServices.GetAllExpenses();
+        var expenses = await _expensesServices.GetAllExpenses();
 
         if (!expenses.Any())
         {
@@ -113,7 +113,7 @@ public class ExpenseConsole
             _consoleService.DisplayExpense(expense);
         }
     }
-    private void AddExpense()
+    private async void AddExpense()
     {
         var title = _consoleService.GetValueString("Enter Title:");
 
@@ -152,7 +152,7 @@ public class ExpenseConsole
             CreatedExpense = DateTimeOffset.UtcNow
         };
 
-        var resultAdd = _expensesServices.AddExpenses(expense);
+        var resultAdd = await _expensesServices.AddExpenses(expense);
         if (!resultAdd.IsSuccess)
         {
             _consoleService.Write(resultAdd.Message);
@@ -163,7 +163,7 @@ public class ExpenseConsole
         }
     }
 
-    private void DeleteExpense()
+    private async void DeleteExpense()
     {
         var id = _consoleService.GetValueString("Enter Expense ID to delete:");
         int parsedId;
@@ -176,7 +176,7 @@ public class ExpenseConsole
             _consoleService.Write(ex.Message);
             return;
         }
-        var resultDelete = _expensesServices.RemoveExpenses(parsedId);
+        var resultDelete = await _expensesServices.RemoveExpenses(parsedId);
         if (!resultDelete.IsSuccess)
         {
             _consoleService.Write(resultDelete.Message);
@@ -186,7 +186,7 @@ public class ExpenseConsole
             _consoleService.Write("Expense deleted successfully.");
         }
     }
-    private void UpdateExpense()
+    private async void UpdateExpense()
     {
         var id = _consoleService.GetValueString("Enter Expense ID to update:");
         int parsedId;
@@ -200,7 +200,7 @@ public class ExpenseConsole
             return;
         }
 
-        var expensesFromRepo = _expensesServices.GetExpenseById(parsedId);
+        var expensesFromRepo = await _expensesServices.GetExpenseById(parsedId);
         if (expensesFromRepo == null)
         {
             _consoleService.Write("Expense not found.");
@@ -260,7 +260,7 @@ public class ExpenseConsole
             ExpenseType = parsedExpenseType
         };
 
-        var resultUpdate = _expensesServices.Update(expenseForUpdate);
+        var resultUpdate = await _expensesServices.Update(expenseForUpdate);
         if (!resultUpdate.IsSuccess)
         {
             _consoleService.Write(resultUpdate.Message);
@@ -270,7 +270,7 @@ public class ExpenseConsole
             _consoleService.Write("Expense updated successfully.");
         }
     }
-    public void ConvertExpenseCurrency()
+    public async void ConvertExpenseCurrency()
     {
         var idForExpense = _consoleService.GetValueString("Please enter the id for  the expense to convert currency from Ron:");
         int id;
@@ -296,14 +296,14 @@ public class ExpenseConsole
             _consoleService.Write(ex.Message);
             return;
         }
-        ResultResponse resultResponse = _expenseExchangeService.ConvertExpenseCurrencyFromRon(id, currency);
+        ResultResponse<Expense> resultResponse = await _expenseExchangeService.ConvertExpenseCurrencyFromRon(id, currency);
 
         if (!resultResponse.IsSuccess)
         {
              _consoleService.Write(resultResponse.Message);
             return;
         }
-        _expensesServices.Update(resultResponse.Expense!);
+        await _expensesServices.Update(resultResponse.Data!);
 
         _consoleService.Write("The procces was a success!");
     }

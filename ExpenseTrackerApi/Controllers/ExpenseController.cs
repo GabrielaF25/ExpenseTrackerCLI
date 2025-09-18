@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using ExpenseTrackerApi.Dto;
 using ExpenseTrackerApi.Services;
-using Microsoft.AspNetCore.Http;
+using ExpenseTrackerCLI.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseTrackerApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Expense")]
     [ApiController]
     public class ExpenseController : ControllerBase
     {
@@ -19,17 +19,17 @@ namespace ExpenseTrackerApi.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<ExpenseDto>> GetExpense()
+        public async Task<ActionResult<IEnumerable<ExpenseDto>>> GetExpense()
         {
-            var expenses = expenseService.GetExpenses();
+            var expenses = await expenseService.GetExpenses();
 
             return Ok(expenses);
         }
 
         [HttpGet("{id}", Name = "GetExpenseById")]
-        public ActionResult<ExpenseDto> GetExpense(int id)
+        public async Task<ActionResult<ExpenseDto>> GetExpense(int id)
         {
-            var exenseDto = expenseService.GetExpenseById(id);
+            var exenseDto = await expenseService.GetExpenseById(id);
             if (exenseDto is null)
             {
                 return NotFound();
@@ -38,47 +38,40 @@ namespace ExpenseTrackerApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ExpenseDto> AddExpense(ExpenseForCreationDto expenseDtoFromParameter)
+        public async Task<ActionResult<ExpenseDto>> AddExpense(ExpenseForCreationDto expenseDtoFromParameter)
         {
-            var result = expenseService.AddExpense(expenseDtoFromParameter);
+            var result = await expenseService.AddExpense(expenseDtoFromParameter);
 
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Message);
             }
 
-            var expenseDto = _mapper.Map<ExpenseDto>(result.Expense);
-            return CreatedAtRoute("GetExpenseById", new { result.Expense!.Id }, expenseDto);
+            var expenseDto = _mapper.Map<ExpenseDto>(result.Data);
+            return CreatedAtRoute("GetExpenseById", new { id = result.Data!.Id }, expenseDto);
         }
 
 
         [HttpPut("{id}")]
-        public ActionResult<ExpenseDto> UpdateExpense(int id, ExpenseForCreationDto expenseDtoFromParameter)
+        public async Task<ActionResult<ExpenseDto>> UpdateExpense(int id, ExpenseForCreationDto expenseDtoFromParameter)
         {
-            var result = expenseService.UpdateExpense(id, expenseDtoFromParameter);
+            var result = await expenseService.UpdateExpense(id, expenseDtoFromParameter);
 
             if (!result.IsSuccess)
             {
-                if (result.Message.Contains($"The expense with id {id} does not exist!"))
-                {
-                    return NotFound($"{result.Message}");
-                }
-                return BadRequest(result.Message);
+                return result.Error is ErrorType.NotFound ? NotFound($"{result.Message}") : BadRequest(result.Message);
             }
 
             return NoContent();
         }
         [HttpDelete("{id}")]
-        public ActionResult DeleteExpense(int id)
+        public async Task<ActionResult> DeleteExpense(int id)
         {
-            var result = expenseService.RemoveExpense(id);
+            var result = await expenseService.RemoveExpense(id);
+
             if (!result.IsSuccess)
             {
-                if (result.Message.Contains($"The expense with id {id} does not exist!"))
-                {
-                    return NotFound($"{result.Message}");
-                }
-                return BadRequest(result.Message);
+                return result.Error is ErrorType.NotFound ? NotFound($"{result.Message}") : BadRequest(result.Message);
             }
 
             return NoContent();

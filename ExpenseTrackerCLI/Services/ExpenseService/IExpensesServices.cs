@@ -5,10 +5,10 @@ namespace ExpenseTrackerCLI.Services.ExpenseService;
 
 public interface IExpensesServices
 {
-    ResultResponse AddExpenses(Expense expenseToAdd);
-    ResultResponse RemoveExpenses(int idFromParameter);
-    ResultResponse Update(Expense expenseToUpdate);
-    IEnumerable<Expense> GetAllExpenses();
-    Expense? GetExpenseById(int id);
+    Task<ResultResponse<Expense>> AddExpenses(Expense expenseToAdd, CancellationToken ct = default);
+    Task<ResultResponse<Expense>> RemoveExpenses(int idFromParameter, CancellationToken ct = default);
+    Task<ResultResponse<Expense>> Update(Expense expenseToUpdate, CancellationToken ct = default);
+    Task<IEnumerable<Expense>> GetAllExpenses(CancellationToken ct = default);
+    Task<Expense?> GetExpenseById(int id, CancellationToken ct = default);
    
 }

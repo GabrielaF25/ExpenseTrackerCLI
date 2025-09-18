@@ -25,7 +25,7 @@ public class ServiceExpenseUnitTests
 
     #region AddExpense
     [Test]
-    public void AddExpense_WhenCalled_ShoudAddInDb()
+    public async Task AddExpense_WhenCalled_ShoudAddInDb()
     {
         //Arrange
         var expense = new Expense
@@ -39,18 +39,18 @@ public class ServiceExpenseUnitTests
         _mockValidator.Setup(v => v.Validate(expense))
                       .Returns(new ValidationResult());
         //Act
-        var resultResponse = _services.AddExpenses(expense);
+        var resultResponse = await _services.AddExpenses(expense);
 
         //Assert
 
         Assert.That(resultResponse.IsSuccess, Is.True);
-        Assert.That(resultResponse.Expense, Is.EqualTo(expense));
+        Assert.That(resultResponse.Data, Is.EqualTo(expense));
 
-        _mockRepo.Verify(x => x.AddExpense(expense), Times.Once);
+        _mockRepo.Verify(x => x.AddExpense(expense, default), Times.Once);
     }
 
     [Test]
-    public void AddExpense_FailedInvalidate_ShoudReturnAFailedMessage()
+    public async Task AddExpense_FailedInvalidate_ShoudReturnAFailedMessage()
     {
         //Arrange
         var expense = new Expense
@@ -67,35 +67,35 @@ public class ServiceExpenseUnitTests
                           new ValidationFailure ( "Title", "Title is required!")
                       }));
         //Act
-        var resultResponse = _services.AddExpenses(expense);
+        var resultResponse = await _services.AddExpenses(expense);
 
         //Assert
 
         Assert.That(resultResponse.IsSuccess, Is.False);
         Assert.That(resultResponse.Message, Is.EqualTo("Title is required!"));
 
-        _mockRepo.Verify(x => x.AddExpense(expense), Times.Never);
+        _mockRepo.Verify(x => x.AddExpense(expense, default), Times.Never);
     }
 
     [Test]
-    public void AddExpense_NullObject_ShoudReturnAFailedMessage()
+    public async Task AddExpense_NullObject_ShoudReturnAFailedMessage()
     {
         //Arrange & Act
-        var resultResponse = _services.AddExpenses(null!);
+        var resultResponse = await _services.AddExpenses(null!);
 
         //Assert
 
         Assert.That(resultResponse.IsSuccess, Is.False);
         Assert.That(resultResponse.Message, Is.EqualTo("Expense is null!"));
 
-        _mockRepo.Verify(x => x.AddExpense(It.IsAny<Expense>()), Times.Never);
+        _mockRepo.Verify(x => x.AddExpense(It.IsAny<Expense>(), default), Times.Never);
     }
     #endregion
 
     #region RemoveExpense
 
     [Test]
-    public void RemoveExpense_WhenCalled_RemoveExpenseFromDb()
+    public async Task RemoveExpense_WhenCalled_RemoveExpenseFromDb()
     {
         //Arrange
         var expense = new Expense
@@ -106,54 +106,54 @@ public class ServiceExpenseUnitTests
             Amount = 10,
             CreatedExpense = DateTimeOffset.Now
         };
-        _mockRepo.Setup(x => x.GetExpenseById(1)).Returns(expense);
+        _mockRepo.Setup(x => x.GetExpenseById(1, default)).ReturnsAsync(expense);
 
         //Act
-       var result = _services.RemoveExpenses(1);
+       var result = await _services.RemoveExpenses(1);
 
         //Assert
 
         Assert.IsTrue(result.IsSuccess);
-        _mockRepo.Verify(x => x.RemoveExpense(expense), Times.Once);
+        _mockRepo.Verify(x => x.RemoveExpense(expense, default), Times.Once);
     }
 
     [Test]
-    public void RemoveExpense_WhenCalled_ReturnFailedMessage()
+    public async Task RemoveExpense_WhenCalled_ReturnFailedMessage()
     {
         //Arrange
-        _mockRepo.Setup(x => x.GetExpenseById(1)).Returns((Expense?)null);
+        _mockRepo.Setup(x => x.GetExpenseById(1, default)).ReturnsAsync((Expense?)null);
 
         //Act
-        var result = _services.RemoveExpenses(1);
+        var result = await _services.RemoveExpenses(1);
 
         //Assert
 
         Assert.IsFalse(result.IsSuccess);
         Assert.That(result.Message, Is.EqualTo("Sorry! Expense not found."));
-        _mockRepo.Verify(x => x.RemoveExpense(null!), Times.Never);
+        _mockRepo.Verify(x => x.RemoveExpense(It.IsAny<Expense>(), default), Times.Never);
     }
     #endregion
 
     # region GetAllExpenses
     [TestCaseSource(typeof(TestDataCases), nameof(TestDataCases.TestCaseDataEmptyListExpenses))]
     [TestCaseSource(typeof(TestDataCases), nameof(TestDataCases.TestCaseDataExpenses))]
-    public void GetAllExpenses_WhenCalled_ShouldReturnExpenses(List<Expense> listFromParameter)
+    public async Task GetAllExpenses_WhenCalled_ShouldReturnExpenses(List<Expense> listFromParameter)
     {
         //Arrange
-        _mockRepo.Setup(x => x.GetAllExpenses()).Returns(listFromParameter);
+        _mockRepo.Setup(x => x.GetAllExpenses(default)).ReturnsAsync(listFromParameter);
 
         //Act
-        var list = _services.GetAllExpenses();
+        var list = await _services.GetAllExpenses();
 
         //Assert
         Assert.That(list.Count, Is.EqualTo(listFromParameter.Count));
-        _mockRepo.Verify(x => x.GetAllExpenses(), Times.Once);  
+        _mockRepo.Verify(x => x.GetAllExpenses(default), Times.Once);  
     }
     #endregion
 
     #region GetExpenseById
     [Test]
-    public void GetExpenseById_WhenCalled_ShouldReturnExpense()
+    public async Task GetExpenseById_WhenCalled_ShouldReturnExpense()
     {
         //Arrange
         var expense = new Expense
@@ -164,20 +164,20 @@ public class ServiceExpenseUnitTests
             Amount = 10,
             CreatedExpense = DateTimeOffset.Now
         };
-        _mockRepo.Setup(x => x.GetExpenseById(1)).Returns(expense);
+        _mockRepo.Setup(x => x.GetExpenseById(1, default)).ReturnsAsync(expense);
 
         //Act
-        var expenseFromDb = _services.GetExpenseById(1);
+        var expenseFromDb = await _services.GetExpenseById(1, default);
 
         //Assert
         Assert.That(expenseFromDb, Is.EqualTo(expense));
-        _mockRepo.Verify(x => x.GetExpenseById(1), Times.Once);
+        _mockRepo.Verify(x => x.GetExpenseById(1, default), Times.Once);
     }
     #endregion
 
     #region UpdateExpense
     [TestCaseSource(typeof(TestDataCases), nameof(TestDataCases.TestCasesUpdateExpenseService))]
-    public void UpdateExpense_WhenCalled_UpdateAllFields(List<Expense> expenses, string expectedTitle, 
+    public async Task UpdateExpense_WhenCalled_UpdateAllFields(List<Expense> expenses, string expectedTitle, 
         string expectedDescription, decimal expectedAmount)
     {
         var expenseFromList = expenses[0];
@@ -189,11 +189,11 @@ public class ServiceExpenseUnitTests
             Amount = 12,
         };
 
-        _mockRepo.SetupSequence(x => x.GetExpenseById(1))
-            .Returns(expenseForUpdate);
+        _mockRepo.SetupSequence(x => x.GetExpenseById(1, default))
+            .ReturnsAsync(expenseForUpdate);
 
         //Act
-        var result = _services.Update(expenseFromList);
+        var result = await _services.Update(expenseFromList);
 
         //Assert
 
@@ -204,39 +204,39 @@ public class ServiceExpenseUnitTests
             Assert.That(expenseForUpdate.Description, Is.EqualTo(expectedDescription));
             Assert.That(expenseForUpdate.Amount, Is.EqualTo(expectedAmount));
         });
-        _mockRepo.Verify(x => x.UpdateExpense(expenseFromList), Times.Once);
+        _mockRepo.Verify(x => x.UpdateExpense(expenseFromList, default), Times.Once);
     }
     [Test]
-    public void UpdateExpense_WhenCalled_ShouldReturnFailedMessage()
+    public async Task UpdateExpense_WhenCalled_ShouldReturnFailedMessage()
     {
         //Arrange
 
         //Act
-        var result = _services.Update(null!);
+        var result = await _services.Update(null!);
 
         //Assert
 
         Assert.IsFalse(result.IsSuccess);
         Assert.That(result.Message, Is.EqualTo("Expense is null!"));
-        _mockRepo.Verify(x => x.UpdateExpense(It.IsAny<Expense>()), Times.Never);
+        _mockRepo.Verify(x => x.UpdateExpense(It.IsAny<Expense>(), default), Times.Never);
     }
 
     [Test]
-    public void UpdateExpense_WhenCalled_ShouldReturnFailedMessage2()
+    public async Task UpdateExpense_WhenCalled_ShouldReturnFailedMessage2()
     {
         //Arrange
 
-        _mockRepo.SetupSequence(x => x.GetExpenseById(1))
-            .Returns((Expense?)null);
+        _mockRepo.SetupSequence(x => x.GetExpenseById(1, default))
+            .ReturnsAsync((Expense?)null);
 
         //Act
-        var result = _services.Update(new Expense());
+        var result = await _services.Update(new Expense());
 
         //Assert
 
         Assert.IsFalse(result.IsSuccess);
         Assert.That(result.Message, Is.EqualTo("Expense not found!"));
-        _mockRepo.Verify(x => x.UpdateExpense(It.IsAny<Expense>()), Times.Never);
+        _mockRepo.Verify(x => x.UpdateExpense(It.IsAny<Expense>(), default), Times.Never);
     }
     #endregion
 }

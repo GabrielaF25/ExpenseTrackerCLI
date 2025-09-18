@@ -13,13 +13,13 @@ public class ExpenseExchangeService(IExpensesServices services, IExchangeRatePro
     private readonly IDateTimeRate _dateTimeRate = dateTimeRate;
 
 
-    public ResultResponse ConvertExpenseCurrencyFromRon(int id, CurrencyType currencyType)
+    public async Task<ResultResponse<Expense>> ConvertExpenseCurrencyFromRon(int id, CurrencyType currencyType, CancellationToken ct = default)
     {
-        var expenseToChangeCurrency = _services.GetExpenseById(id);
+        var expenseToChangeCurrency = await _services.GetExpenseById(id, ct);
 
         if (expenseToChangeCurrency == null)
         {
-            return ResultResponse.Failure($"The expense with id {id} does not exist!");
+            return ResultResponse<Expense>.Failure($"The expense with id {id} does not exist!", ErrorType.NotFound);
         }
 
         var result = _exchangeRateProvider.GetValue(currencyType);
@@ -28,22 +28,22 @@ public class ExpenseExchangeService(IExpensesServices services, IExchangeRatePro
         expenseToChangeCurrency.Currency = currencyType;
         expenseToChangeCurrency.FixRateDate = _dateTimeRate.SetDateTimeNow();
 
-        var resultFromUpdate = _services.Update(expenseToChangeCurrency);
+        var resultFromUpdate = await _services.Update(expenseToChangeCurrency, ct);
         if (!resultFromUpdate.IsSuccess)
         {
             return resultFromUpdate;
         }
 
-        return ResultResponse.Success(expenseToChangeCurrency);
+        return ResultResponse<Expense>.Success(expenseToChangeCurrency);
     }
 
-    public ResultResponse ConvertExpenseCurrencyToRon(int id)
+    public async Task<ResultResponse<Expense>> ConvertExpenseCurrencyToRon(int id, CancellationToken ct = default)
     {
-        var expenseToChangeCurrency = _services.GetExpenseById(id);
+        var expenseToChangeCurrency = await _services.GetExpenseById(id, ct);
 
         if (expenseToChangeCurrency == null)
         {
-            return ResultResponse.Failure($"The expense with id {id} does not exist!");
+            return ResultResponse<Expense>.Failure($"The expense with id {id} does not exist!", ErrorType.NotFound);
         }
 
         var result = _exchangeRateProvider.GetValue(expenseToChangeCurrency.Currency);
@@ -52,12 +52,12 @@ public class ExpenseExchangeService(IExpensesServices services, IExchangeRatePro
         expenseToChangeCurrency.Currency = CurrencyType.Ron;
         expenseToChangeCurrency.FixRateDate = _dateTimeRate.SetDateTimeNow();
 
-        var resultFromUpdate = _services.Update(expenseToChangeCurrency);
+        var resultFromUpdate = await _services.Update(expenseToChangeCurrency, ct);
         if (!resultFromUpdate.IsSuccess)
         {
             return resultFromUpdate;
         }
 
-        return ResultResponse.Success();
+        return ResultResponse<Expense>.Success();
     }
 }

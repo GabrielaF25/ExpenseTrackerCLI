@@ -9,40 +9,40 @@ public class ExpensesServices(IExpensesRepository repository, IValidator<Expense
 {
     private readonly IExpensesRepository _repository = repository;
     private readonly IValidator<Expense?> _validator = validator;
-    public ResultResponse  AddExpenses(Expense expenseToAdd)
+    public async Task<ResultResponse<Expense>> AddExpenses(Expense expenseToAdd, CancellationToken ct = default)
     {
         if(expenseToAdd == null)
         {
-            return ResultResponse.Failure("Expense is null!");
+            return ResultResponse<Expense>.Failure("Expense is null!", ErrorType.NullObject);
         }
 
         var validationResult = _validator.Validate(expenseToAdd);
-        if (!validationResult.IsValid) return ResultResponse.Failure(string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage)));
+        if (!validationResult.IsValid) return ResultResponse<Expense>.Failure(string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage)), ErrorType.ErrorValidation);
 
-        _repository.AddExpense(expenseToAdd);
-        return ResultResponse.Success(expenseToAdd);
+        await _repository.AddExpense(expenseToAdd, ct);
+        return ResultResponse<Expense>.Success(expenseToAdd);
     }
 
-    public ResultResponse RemoveExpenses(int idFromParameter)
+    public async Task<ResultResponse<Expense>> RemoveExpenses(int idFromParameter, CancellationToken ct = default)
     {
-        var expenseToRemove = _repository.GetExpenseById(idFromParameter);
+        var expenseToRemove = await _repository.GetExpenseById(idFromParameter, ct);
         if (expenseToRemove == null)
         {
-            return ResultResponse.Failure("Sorry! Expense not found.");
+            return ResultResponse<Expense>.Failure("Sorry! Expense not found.", ErrorType.NotFound);
         }
-        _repository.RemoveExpense(expenseToRemove);
-        return ResultResponse.Success();
+        await _repository.RemoveExpense(expenseToRemove, ct);
+        return ResultResponse<Expense>.Success();
     }
 
-    public ResultResponse Update(Expense expenseToUpdate) 
+    public async Task<ResultResponse<Expense>> Update(Expense expenseToUpdate, CancellationToken ct = default) 
     {
         if (expenseToUpdate == null)
-            return ResultResponse.Failure("Expense is null!");
+            return ResultResponse<Expense>.Failure("Expense is null!", ErrorType.NullObject);
 
-        var expenseFromDb = _repository.GetExpenseById(expenseToUpdate.Id);
+        var expenseFromDb = await _repository.GetExpenseById(expenseToUpdate.Id, ct);
 
         if (expenseFromDb == null) 
-            return ResultResponse.Failure("Expense not found!");
+            return ResultResponse<Expense>.Failure("Expense not found!", ErrorType.NotFound);
 
         if(string.IsNullOrWhiteSpace(expenseToUpdate.Title)) 
             expenseToUpdate.Title = expenseFromDb.Title;
@@ -53,18 +53,18 @@ public class ExpensesServices(IExpensesRepository repository, IValidator<Expense
         if (expenseToUpdate.Amount == 0)  
             expenseToUpdate.Amount = expenseFromDb.Amount;
 
-        _repository.UpdateExpense(expenseToUpdate);
+        await _repository.UpdateExpense(expenseToUpdate, ct);
 
-        return ResultResponse.Success();
+        return ResultResponse<Expense>.Success();
     }
 
-    public IEnumerable<Expense> GetAllExpenses()
+    public async Task<IEnumerable<Expense>> GetAllExpenses(CancellationToken ct = default)
     {
-       return _repository.GetAllExpenses();
+       return await _repository.GetAllExpenses(ct);
     }
 
-    public Expense? GetExpenseById(int id)
+    public async Task<Expense?> GetExpenseById(int id, CancellationToken ct = default)
     {
-       return _repository.GetExpenseById(id);
+       return await _repository.GetExpenseById(id, ct);
     }
 }

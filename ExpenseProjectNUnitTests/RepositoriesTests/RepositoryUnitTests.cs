@@ -4,11 +4,11 @@ using ExpenseTrackerCLI.Entities;
 using ExpenseTrackerCLI.ExpensesDatabase;
 using ExpenseTrackerCLI.Repositories;
 
-namespace ExpenseProjectNUnitTests.RepositoryTest
+namespace ExpenseProjectNUnitTests.RepositoriesTests
 {
     public class RepositoryUnitTests
     {
-        private IExpensesRepository _repository;
+        private ExpensesRepository _repository;
         private ExpensesDB _context;
         [SetUp]
         public void Setup()
@@ -25,7 +25,7 @@ namespace ExpenseProjectNUnitTests.RepositoryTest
         }
         
         [Test]
-        public void AddExpense_WhenCalled_ShouldAddExpenseInDb()
+        public async Task AddExpense_WhenCalled_ShouldAddExpenseInDb()
         {
             //Arrange
             var expense = new Expense()
@@ -38,7 +38,7 @@ namespace ExpenseProjectNUnitTests.RepositoryTest
             };
 
             //Act
-            _repository.AddExpense(expense);
+            await _repository.AddExpense(expense);
 
             //Assert
             Assert.That(_context.Expenses.ToList(), Does.Contain(expense));
@@ -46,27 +46,27 @@ namespace ExpenseProjectNUnitTests.RepositoryTest
 
         [TestCaseSource(typeof(TestDataCases), nameof(TestDataCases.TestCaseDataEmptyListExpenses))]
         [TestCaseSource(typeof(TestDataCases), nameof(TestDataCases.TestCaseDataExpenses))]
-        public void GetAllExpenses_WhenCalldes_ReturnAllExpenses(List<Expense> listFromParameter)
+        public async Task GetAllExpenses_WhenCalldes_ReturnAllExpenses(List<Expense> listFromParameter)
         {
             //Arrange
             _context.Expenses.AddRange(listFromParameter);
 
             //Act
-            var listFromDb = _repository.GetAllExpenses();
+            var listFromDb = await _repository.GetAllExpenses();
 
             //Assert
             Assert.That(listFromDb.Count(), Is.EqualTo(_context.Expenses.Count()));
         }
 
         [TestCaseSource(typeof(TestDataCases), nameof(TestDataCases.TestCaseDataExpenses))]
-        public void RemoveExpense_WhenCalled_ShouldRemoveExpenseInDb(List<Expense> expenses)
+        public async Task RemoveExpense_WhenCalled_ShouldRemoveExpenseInDb(List<Expense> expenses)
         {
             //Arrange
             _context.Expenses.AddRange(expenses);
             var expenseToRemove = expenses[1];
             
             //Act
-            _repository.RemoveExpense(expenseToRemove);
+            await _repository.RemoveExpense(expenseToRemove);
 
             //Assert
             Assert.That(_context.Expenses, Does.Not.Contain(expenseToRemove));
@@ -74,7 +74,7 @@ namespace ExpenseProjectNUnitTests.RepositoryTest
         }
 
         [TestCaseSource(typeof(TestDataCases), nameof(TestDataCases.TestCaseDataExpenses))]
-        public void GetExpenseById_WhenCalled_ShouldReturnRequiredExpese(List<Expense> expenseListFromParameter)
+        public async Task GetExpenseById_WhenCalled_ShouldReturnRequiredExpese(List<Expense> expenseListFromParameter)
         {
             //Arrange
             _context.Expenses.AddRange(expenseListFromParameter);
@@ -82,7 +82,7 @@ namespace ExpenseProjectNUnitTests.RepositoryTest
             var expense = expenseListFromParameter[1];
 
             //Act
-            var expenseFromDb = _repository.GetExpenseById(2);
+            var expenseFromDb = await _repository.GetExpenseById(2);
 
             //Assert
 
@@ -90,20 +90,20 @@ namespace ExpenseProjectNUnitTests.RepositoryTest
         }
 
         [TestCaseSource(typeof(TestDataCases), nameof(TestDataCases.TestCaseDataExpenses))]
-        public void GetExpenseById_WhenCalledInexistentId_ShouldReturnNull(List<Expense> expenseListFromParameter)
+        public async Task GetExpenseById_WhenCalledInexistentId_ShouldReturnNull(List<Expense> expenseListFromParameter)
         {
             //Arrange
             _context.Expenses.AddRange(expenseListFromParameter);
 
             //Act
-            var expenseFromDb = _repository.GetExpenseById(7);
+            var expenseFromDb = await _repository.GetExpenseById(7);
 
             //Assert
             Assert.That(expenseFromDb, Is.Null);
         }
 
         [TestCaseSource(typeof(TestDataCases), nameof(TestDataCases.TestCaseDataExpenses))]
-        public void UpdateExpense_WhenCalled_UpdateExpenseInDb(List<Expense> expenseListFromParameter)
+        public async Task UpdateExpense_WhenCalled_UpdateExpenseInDb(List<Expense> expenseListFromParameter)
         {
             //Arrange
             _context.Expenses.AddRange(expenseListFromParameter);
@@ -122,11 +122,11 @@ namespace ExpenseProjectNUnitTests.RepositoryTest
             };
 
             //Act
-            _repository.UpdateExpense(expenseForUpdate);
+            await _repository.UpdateExpense(expenseForUpdate);
 
             //Assert
 
-            var expense = _repository.GetExpenseById(2);
+            var expense = await _repository.GetExpenseById(2);
 
             Assert.IsNotNull(expense);
 

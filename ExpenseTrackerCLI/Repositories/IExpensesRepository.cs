@@ -5,9 +5,9 @@ namespace ExpenseTrackerCLI.Repositories;
 
 public interface IExpensesRepository
 {
-    void RemoveExpense(Expense expense);
-    void AddExpense(Expense expense);
-    void UpdateExpense(Expense expense);
-    IEnumerable<Expense> GetAllExpenses();
-    Expense? GetExpenseById(int id);
+    Task RemoveExpense(Expense expense, CancellationToken ct = default);
+    Task AddExpense(Expense expense, CancellationToken ct = default);
+    Task UpdateExpense(Expense expense, CancellationToken ct = default);
+    Task<IEnumerable<Expense>> GetAllExpenses(CancellationToken ct = default);
+    Task<Expense?> GetExpenseById(int id, CancellationToken ct = default);
 }

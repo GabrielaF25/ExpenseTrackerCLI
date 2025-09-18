@@ -1,10 +1,11 @@
 ﻿using ExpenseTrackerApi.Services;
+using ExpenseTrackerCLI.Common;
 using ExpenseTrackerCLI.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseTrackerApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/Exchange")]
 [ApiController]
 public class ExchangeExpenseController : ControllerBase
 {
@@ -15,32 +16,26 @@ public class ExchangeExpenseController : ControllerBase
         _expenseServiceApi = expenseServiceApi;
     }
 
-    [HttpPut("Exchange/FromRonTo")]
-    public ActionResult ExchangeFromRonTo(int id, CurrencyType currencyType)
+    [HttpPut("{id}/exchange/from-ron-to/{currencyType}")]
+    public async Task<ActionResult> ExchangeFromRonTo([FromRoute]int id, [FromRoute]CurrencyType currencyType)
     {
-        var result = _expenseServiceApi.ConvertExpenseCurrencyFromRonTo(id, currencyType);
+        var result = await _expenseServiceApi.ConvertExpenseCurrencyFromRonTo(id, currencyType);
+
         if (!result.IsSuccess)
         {
-            if(result.Message.Contains($"The expense with id {id} does not exist!"))
-            {
-                return NotFound($"{ result.Message}");
-            }
-            return BadRequest(result.Message);
+            return result.Error is ErrorType.NotFound ? NotFound($"{result.Message}") : BadRequest(result.Message);
         }
 
         return NoContent();
     }
-    [HttpPut("Exchange/ToRon")]
-    public ActionResult ExchangeToRon(int id)
+    [HttpPut("{id}/exchange/to-ron")]
+    public async Task<ActionResult> ExchangeToRon([FromRoute] int id)
     {
-        var result = _expenseServiceApi.ConvertExpenseCurrencyFromToRon(id);
+        var result = await _expenseServiceApi.ConvertExpenseCurrencyFromToRon(id);
+
         if (!result.IsSuccess)
         {
-            if (result.Message.Contains($"The expense with id {id} does not exist!"))
-            {
-                return NotFound($"{result.Message}");
-            }
-            return BadRequest(result.Message);
+            return result.Error is ErrorType.NotFound ? NotFound($"{result.Message}") : BadRequest(result.Message);
         }
 
         return NoContent();

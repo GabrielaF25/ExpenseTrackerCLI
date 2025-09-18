@@ -6,11 +6,11 @@ namespace ExpenseTrackerApi.Services;
 
 public interface IExpenseServiceApi
 {
-    IEnumerable<ExpenseDto> GetExpenses();
-    ExpenseDto? GetExpenseById(int id);
-    ResultResponse RemoveExpense(int id);
-    ResultResponse AddExpense(ExpenseForCreationDto forCreationDto);
-    ResultResponse UpdateExpense(int id, ExpenseForCreationDto forCreationDto);
-    ResultResponse ConvertExpenseCurrencyFromRonTo(int id, CurrencyType currencyType);
-    ResultResponse ConvertExpenseCurrencyFromToRon(int id);
+    Task<IEnumerable<ExpenseDto>> GetExpenses();
+    Task<ExpenseDto?> GetExpenseById(int id);
+    Task<ResultResponse<Expense>> RemoveExpense(int id);
+    Task<ResultResponse<Expense>> AddExpense(ExpenseForCreationDto forCreationDto);
+    Task<ResultResponse<Expense>> UpdateExpense(int id, ExpenseForCreationDto forCreationDto);
+    Task<ResultResponse<Expense>> ConvertExpenseCurrencyFromRonTo(int id, CurrencyType currencyType);
+    Task<ResultResponse<Expense>> ConvertExpenseCurrencyFromToRon(int id);
 }
