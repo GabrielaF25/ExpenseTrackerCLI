@@ -1,12 +1,14 @@
 ﻿using ExpenseTrackerApi.Services;
 using ExpenseTrackerCLI.Common;
 using ExpenseTrackerCLI.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseTrackerApi.Controllers;
 
 [Route("api/Exchange")]
 [ApiController]
+[Authorize]
 public class ExchangeExpenseController : ControllerBase
 {
     private readonly IExpenseServiceApi  _expenseServiceApi;

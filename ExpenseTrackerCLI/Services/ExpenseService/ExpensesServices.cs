@@ -13,7 +13,7 @@ public class ExpensesServices(IExpensesRepository repository, IValidator<Expense
     {
         if(expenseToAdd == null)
         {
-            return ResultResponse<Expense>.Failure("Expense is null!", ErrorType.NullObject);
+            return ResultResponse<Expense>.Failure("Sorry! Expense is null!", ErrorType.NullObject);
         }
 
         var validationResult = _validator.Validate(expenseToAdd);
@@ -37,12 +37,12 @@ public class ExpensesServices(IExpensesRepository repository, IValidator<Expense
     public async Task<ResultResponse<Expense>> Update(Expense expenseToUpdate, CancellationToken ct = default) 
     {
         if (expenseToUpdate == null)
-            return ResultResponse<Expense>.Failure("Expense is null!", ErrorType.NullObject);
+            return ResultResponse<Expense>.Failure("Sorry! Expense is null!", ErrorType.NullObject);
 
         var expenseFromDb = await _repository.GetExpenseById(expenseToUpdate.Id, ct);
 
         if (expenseFromDb == null) 
-            return ResultResponse<Expense>.Failure("Expense not found!", ErrorType.NotFound);
+            return ResultResponse<Expense>.Failure("Sorry! Expense not found!", ErrorType.NotFound);
 
         if(string.IsNullOrWhiteSpace(expenseToUpdate.Title)) 
             expenseToUpdate.Title = expenseFromDb.Title;

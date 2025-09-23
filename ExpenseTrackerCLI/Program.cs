@@ -5,6 +5,7 @@ using ExpenseTrackerCLI.DateTimeExchangeRate;
 using ExpenseTrackerCLI.Entities;
 using ExpenseTrackerCLI.ExchangeRate;
 using ExpenseTrackerCLI.ExpensesDatabase;
+using ExpenseTrackerCLI.Extensions;
 using ExpenseTrackerCLI.Repositories;
 using ExpenseTrackerCLI.Services.ExpenseService;
 using ExpenseTrackerCLI.ValidateEntities;
@@ -37,15 +38,7 @@ class Program
 
         services.AddDbContext<ExpensesDB>(option =>
                     option.UseSqlServer(confing.GetConnectionString("ExpensesDB")));
-        services.AddScoped<IExpensesRepository, ExpensesRepository>();
-
-        services.AddScoped<IExpensesServices, ExpensesServices>();
-        services.AddScoped<IConsoleService, ConsoleService>();
-        services.AddScoped<ExpenseConsole>();
-        services.AddScoped<IValidator<Expense>,ValidateExpenses>();
-        services.AddScoped<ExecutorExpenseConsole>();
-        services.AddScoped<IExchangeRateProvider, ExchangeRateProvider>();
-        services.AddScoped<IDateTimeRate, DateTimeRate>();
+        services.ServiceCollection();
 
         var serviceProvider = services.BuildServiceProvider();
 
