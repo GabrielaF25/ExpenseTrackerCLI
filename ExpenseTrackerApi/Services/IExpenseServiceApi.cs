@@ -13,4 +13,5 @@ public interface IExpenseServiceApi
     Task<ResultResponse<Expense>> UpdateExpense(int id, ExpenseForCreationDto forCreationDto);
     Task<ResultResponse<Expense>> ConvertExpenseCurrencyFromRonTo(int id, CurrencyType currencyType);
     Task<ResultResponse<Expense>> ConvertExpenseCurrencyFromToRon(int id);
+    Task<PagedResult<ExpenseDto>> GetExpensesPaged(int page, int pageSize);
 }

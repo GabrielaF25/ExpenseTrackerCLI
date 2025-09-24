@@ -105,4 +105,28 @@ public class ExpenseServiceApi : IExpenseServiceApi
         return result;
     }
 
+    public async Task<PagedResult<ExpenseDto>> GetExpensesPaged(int page, int pageSize)
+    {
+        var expenses = await _expensesServices.GetAllExpenses();
+
+        var query = expenses.OrderByDescending(e => e.CreatedExpense)
+            .ThenByDescending(e => e.Id);
+
+        var total = expenses.Count();
+
+        var items = expenses
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+                
+        var itemsDto = _mapper.Map<IReadOnlyList<ExpenseDto>>(items);
+
+        return new PagedResult<ExpenseDto>
+        {
+            Items = itemsDto,
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = total
+        };
+
+    }
 }

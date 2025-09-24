@@ -4,6 +4,7 @@ using ExpenseTrackerApi.Services;
 using ExpenseTrackerCLI.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Formats.Asn1;
 
 namespace ExpenseTrackerApi.Controllers
 {
@@ -18,6 +19,17 @@ namespace ExpenseTrackerApi.Controllers
         {
             expenseService = service;
             _mapper = mapper;
+        }
+        [HttpGet("pagination")]
+        public async Task<ActionResult<PagedResult<ExpenseDto>>> GetExpenses(
+            [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            if (page < 1) return BadRequest("The 'page' parameter has to be greater than 1");
+            if (page > 21) return BadRequest("The 'page' parameter has to be less than 20");
+
+            var result = await expenseService.GetExpensesPaged(page, pageSize);
+
+            return Ok(result);
         }
 
         [HttpGet]
