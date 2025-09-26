@@ -8,15 +8,15 @@ public  class ViewExpensesHelper(IConsoleService consoleService)
 {
     private readonly IConsoleService _consoleService = consoleService;
 
-    public bool ChangeFieldAnswer(string field)
+    public async Task<bool> ChangeFieldAnswer(string field)
     {
-        var answer = _consoleService.GetValueString($"Do you want to change this {field}? (y/n):");
+        var answer = await _consoleService.GetValueString($"Do you want to change this {field}? (y/n):");
         return answer.Equals("y", StringComparison.OrdinalIgnoreCase);
     }
 
-    public  IEnumerable<Expense> ChooseYearFilter(IEnumerable<Expense> expenses)
+    public  async Task<IEnumerable<Expense>> ChooseYearFilter(IEnumerable<Expense> expenses)
     {
-        var inputYear = _consoleService.GetValueString("Please enter the year:");
+        var inputYear = await _consoleService.GetValueString("Please enter the year:");
         if (!int.TryParse(inputYear, out var year))
         {
             return expenses.Where(d => d.CreatedExpense.Year == DateTimeOffset.Now.Year);
@@ -24,12 +24,12 @@ public  class ViewExpensesHelper(IConsoleService consoleService)
         return expenses.Where(d => d.CreatedExpense.Year == year);
     }
 
-    public  IEnumerable<Expense> ChooseTheMonthFilter(IEnumerable<Expense> expenses, int selectedYear)
+    public  async Task<IEnumerable<Expense>> ChooseTheMonthFilter(IEnumerable<Expense> expenses, int selectedYear)
     {
         if (!expenses.Any()) return expenses;
 
         var now = DateTimeOffset.Now;
-        var input = _consoleService.GetValueString("Please enter the month (1-12, Enter = auto):")?.Trim();
+        var input = (await _consoleService.GetValueString("Please enter the month (1-12, Enter = auto):"))?.Trim();
 
         int yearToUse = selectedYear == 0?  now.Year : selectedYear;
 
@@ -47,17 +47,18 @@ public  class ViewExpensesHelper(IConsoleService consoleService)
                 .Select(e => e.CreatedExpense.Month)
                 .DefaultIfEmpty(cap)
                 .Max();
-            _consoleService.Write($"Entered value for month {input} is not valid. The year {yearToUse} and the month {monthToUse} will be displayed");
+            await _consoleService.Write($"Entered value for month {input} is not valid. The year" +
+                $" {yearToUse} and the month {monthToUse} will be displayed");
         }
 
         return expenses.Where(d => d.CreatedExpense.Year == yearToUse &&
                                    d.CreatedExpense.Month == monthToUse);
     }
 
-    public IEnumerable<Expense> ChooseExpensesByAmountRange(IEnumerable<Expense> expenses)
+    public async Task<IEnumerable<Expense>> ChooseExpensesByAmountRange(IEnumerable<Expense> expenses)
     {
-        var answerStartRangeOfAmount = _consoleService.GetValueString("Please enter the start of the amount range");
-        var answerEndRangeOfAmount = _consoleService.GetValueString("Please enter the end of the amount range");
+        var answerStartRangeOfAmount = await _consoleService.GetValueString("Please enter the start of the amount range");
+        var answerEndRangeOfAmount = await _consoleService.GetValueString("Please enter the end of the amount range");
 
         decimal startRangeAmount = 0;
         decimal endRangeAmount = 0;
@@ -71,12 +72,12 @@ public  class ViewExpensesHelper(IConsoleService consoleService)
 
         if (!startSucces)
         {
-            _consoleService.Write($"Sorry! But {answerStartRangeOfAmount} is not valid ");
+            await _consoleService.Write($"Sorry! But {answerStartRangeOfAmount} is not valid ");
         }
 
         if (!endSucces) 
         {
-            _consoleService.Write($"Sorry! But {answerEndRangeOfAmount} is not valid ");
+            await _consoleService.Write($"Sorry! But {answerEndRangeOfAmount} is not valid ");
         }
 
         if (startSucces && endSucces && startRangeAmount > endRangeAmount)

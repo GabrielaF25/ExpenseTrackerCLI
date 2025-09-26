@@ -4,9 +4,9 @@ namespace ExpenseTrackerCLI.ConsoleServices;
 
 public interface IConsoleService
 {
-    void Write(string message);
-    string Read();
-    void Menu();
-    string GetValueString(string message);
-    void DisplayExpense(Expense expense);
+    Task Write(string message);
+    Task<string> Read();
+    Task Menu();
+    Task<string> GetValueString(string message);
+    Task DisplayExpense(Expense expense);
 }

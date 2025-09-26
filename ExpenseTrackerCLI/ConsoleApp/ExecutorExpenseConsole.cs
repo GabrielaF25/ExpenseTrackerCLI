@@ -9,19 +9,18 @@ public class ExecutorExpenseConsole(ExpenseConsole expenseConsole, IConsoleServi
     private readonly IConsoleService _consoleService = consoleService;
     private readonly ILogger<ExecutorExpenseConsole> _logger = logger;
 
-    public void Run()
+    public async Task Run()
     {
-        _consoleService.Menu();
         while (true)
-        {         
-            var choice = _consoleService.Read();
+        {
+            await _consoleService.Menu();
+            var choice = await _consoleService.Read();
             _logger.LogInformation($" User selected option {choice}");
             if (choice == "6") 
             {
                 Environment.Exit(0);
             }
-            _expenseConsole.ExecuteExpenseConsole(choice);
-            _consoleService.Menu();
+             await _expenseConsole.ExecuteExpenseConsole(choice);
         }
     }
 }

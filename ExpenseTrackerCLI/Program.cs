@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         var confing = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -35,6 +35,6 @@ class Program
         var serviceProvider = services.BuildServiceProvider();
 
         var app = serviceProvider.GetRequiredService<ExecutorExpenseConsole>();
-        app.Run();
+       await  app.Run();
     }
 }

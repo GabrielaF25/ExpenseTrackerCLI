@@ -34,22 +34,22 @@ public class ExpenseConsole
         _expenseRate = expenseRate;
         _expenseExchangeService = expenseExchangeService;
     }
-    public void ExecuteExpenseConsole(string choice)
+    public async Task ExecuteExpenseConsole(string choice)
     {
         if (_menuActions.TryGetValue(choice, out var action))
         {
             try
             {
-                action.Invoke();
+                await action.Invoke();
             }
             catch (Exception ex)
             {
-                _consoleService.Write($"An error occurred: {ex.Message}");
+                await _consoleService.Write($"An error occurred: {ex.Message}");
             }
         }
         else
         {
-            _consoleService.Write("Invalid option. Please try again.");
+            await _consoleService.Write("Invalid option. Please try again.");
         }
     }
 
@@ -59,18 +59,18 @@ public class ExpenseConsole
 
         if (!expenses.Any())
         {
-            _consoleService.Write("No expenses found.");
+            await _consoleService.Write("No expenses found.");
             return;
         }
 
-        _consoleService.Write("Filter by a specific year?(Y/N)");
-        var answerYear = _consoleService.Read();
+        await _consoleService.Write("Filter by a specific year?(Y/N)");
+        var answerYear = await _consoleService.Read();
         if (answerYear.ToLower().Equals("y"))
         {
-            expenses = ViewExpensesHelper.ChooseYearFilter(expenses);
+            expenses = await ViewExpensesHelper.ChooseYearFilter(expenses);
         }
 
-        var answerMonth = _consoleService.GetValueString("Filter by a specific month?(Y/N)");
+        var answerMonth = await _consoleService.GetValueString("Filter by a specific month?(Y/N)");
         if (answerMonth.ToLower().Equals("y"))
         {
             int selectYear = 0;
@@ -80,15 +80,17 @@ public class ExpenseConsole
                 selectYear = expenses.Max(d => d.CreatedExpense.Year);
             }
 
-            expenses = ViewExpensesHelper.ChooseTheMonthFilter(expenses, selectYear);
+            expenses = await ViewExpensesHelper.ChooseTheMonthFilter(expenses, selectYear);
         }
-        if(_consoleService.GetValueString("Do you wanna View the expenses by range of amount? y/n").Equals("y"))
+        var byAmount = (await _consoleService.GetValueString("Do you wanna view the expenses by range of amount? (Y/N)"))
+               ?.Trim();
+        if (string.Equals(byAmount, "y", StringComparison.OrdinalIgnoreCase))
         {
-
-            expenses = ViewExpensesHelper.ChooseExpensesByAmountRange(expenses);
+            expenses = await ViewExpensesHelper.ChooseExpensesByAmountRange(expenses);
         }
 
-        var lastExpensesToDisplay = _consoleService.GetValueString("Do you want to see a specific number of expenses?" +
+
+        var lastExpensesToDisplay = await _consoleService.GetValueString("Do you want to see a specific number of expenses?" +
             " Yes -> Enter a number, No -> Please, press enter.");
 
         int number = 0;
@@ -101,27 +103,27 @@ public class ExpenseConsole
             }
             catch (Exception ex)
             {
-                _consoleService.Write(ex.Message);
+                await _consoleService.Write(ex.Message);
             }
         }
 
         if (!expenses.Any())
         {
-            _consoleService.Write("No expenses found.");
+            await _consoleService.Write("No expenses found.");
             return;
         }
         foreach (var expense in expenses)
         {
-            _consoleService.DisplayExpense(expense);
+            await _consoleService.DisplayExpense(expense);
         }
     }
     private async Task AddExpense()
     {
-        var title = _consoleService.GetValueString("Enter Title:");
+        var title = await _consoleService.GetValueString("Enter Title:");
 
-        var description = _consoleService.GetValueString("Enter Description:");
+        var description = await _consoleService.GetValueString("Enter Description:");
 
-        var amountFromInput = _consoleService.GetValueString("Enter Amount:");
+        var amountFromInput = await _consoleService.GetValueString("Enter Amount:");
         decimal amount;
         try
         {
@@ -129,20 +131,20 @@ public class ExpenseConsole
         }
         catch (ArgumentException ex)
         {
-            _consoleService.Write(ex.Message);
+            await _consoleService.Write(ex.Message);
             return;
         }
 
         ExpenseType expenseType = ExpenseType.UnknownExpenses;
-        var typeFromInput = _consoleService.GetValueString("Enter Type Of Expense:");
+        var typeFromInput = await _consoleService.GetValueString("Enter Type Of Expense:");
         try
         {
             expenseType = GetValueClass.GetExpenseType(typeFromInput);
         }
         catch (ArgumentException ex)
         {
-            _consoleService.Write(ex.Message);
-            _consoleService.Write("The type of expense will be set to 'UnknownExpenses'.");
+            await _consoleService.Write(ex.Message);
+            await _consoleService.Write("The type of expense will be set to 'UnknownExpenses'.");
         }
 
         var expense = new Expense
@@ -157,17 +159,17 @@ public class ExpenseConsole
         var resultAdd = await _expensesServices.AddExpenses(expense);
         if (!resultAdd.IsSuccess)
         {
-            _consoleService.Write(resultAdd.Message);
+            await _consoleService.Write(resultAdd.Message);
         }
         else
         {
-            _consoleService.Write("Expense added successfully.");
+            await _consoleService.Write("Expense added successfully.");
         }
     }
 
     private async Task DeleteExpense()
     {
-        var id = _consoleService.GetValueString("Enter Expense ID to delete:");
+        var id = await _consoleService.GetValueString("Enter Expense ID to delete:");
         int parsedId;
         try
         {
@@ -175,22 +177,22 @@ public class ExpenseConsole
         }
         catch (ArgumentException ex)
         {
-            _consoleService.Write(ex.Message);
+            await _consoleService.Write(ex.Message);
             return;
         }
         var resultDelete = await _expensesServices.RemoveExpenses(parsedId);
         if (!resultDelete.IsSuccess)
         {
-            _consoleService.Write(resultDelete.Message);
+            await _consoleService.Write(resultDelete.Message);
         }
         else
         {
-            _consoleService.Write("Expense deleted successfully.");
+            await _consoleService.Write("Expense deleted successfully.");
         }
     }
     private async Task UpdateExpense()
     {
-        var id = _consoleService.GetValueString("Enter Expense ID to update:");
+        var id = await _consoleService.GetValueString("Enter Expense ID to update:");
         int parsedId;
         try
         {
@@ -198,57 +200,57 @@ public class ExpenseConsole
         }
         catch (ArgumentException ex)
         {
-            _consoleService.Write(ex.Message);
+            await _consoleService.Write(ex.Message);
             return;
         }
 
         var expensesFromRepo = await _expensesServices.GetExpenseById(parsedId);
         if (expensesFromRepo == null)
         {
-            _consoleService.Write("Expense not found.");
+            await _consoleService.Write("Expense not found.");
             return;
         }
         var titleForUpdate = string.Empty;
-        if (ViewExpensesHelper.ChangeFieldAnswer("title"))
+        if (await ViewExpensesHelper.ChangeFieldAnswer("title"))
         {
-            titleForUpdate = _consoleService.GetValueString("Enter new Title :");
+            titleForUpdate = await _consoleService.GetValueString("Enter new Title :");
         }
 
         var descriptionForUpdate = string.Empty;
-        if (ViewExpensesHelper.ChangeFieldAnswer("description"))
+        if (await ViewExpensesHelper.ChangeFieldAnswer("description"))
         {
-            descriptionForUpdate = _consoleService.GetValueString("Enter new Description :");
+            descriptionForUpdate = await _consoleService.GetValueString("Enter new Description :");
         }
 
         string amountFromInput;
         var amountForUpdate = expensesFromRepo.Amount;
-        if (ViewExpensesHelper.ChangeFieldAnswer("amount"))
+        if (await ViewExpensesHelper.ChangeFieldAnswer("amount"))
         {
-            amountFromInput = _consoleService.GetValueString("Enter new Amount :");
+            amountFromInput = await _consoleService.GetValueString("Enter new Amount :");
             try
             {
                 amountForUpdate = GetValueClass.GetExpenseDecimal(amountFromInput);
             }
             catch (ArgumentException ex)
             {
-                _consoleService.Write(ex.Message);
-                _consoleService.Write("The amount will remain unchanged.");
+                await _consoleService.Write(ex.Message);
+                await _consoleService.Write("The amount will remain unchanged.");
             }
         }
 
         var parsedExpenseType = expensesFromRepo.ExpenseType;
-        if (ViewExpensesHelper.ChangeFieldAnswer("expense type"))
+        if (await ViewExpensesHelper.ChangeFieldAnswer("expense type"))
         {
-            _consoleService.Write("Available types: " + string.Join(", ", Enum.GetNames<ExpenseType>()));
-            var expenseTypeFromInput = _consoleService.GetValueString("Enter type expense :");
+            await _consoleService.Write("Available types: " + string.Join(", ", Enum.GetNames<ExpenseType>()));
+            var expenseTypeFromInput = await _consoleService.GetValueString("Enter type expense :");
             try
             {
                 parsedExpenseType = GetValueClass.GetExpenseType(expenseTypeFromInput);
             }
             catch (ArgumentException ex)
             {
-                _consoleService.Write(ex.Message);
-                _consoleService.Write("The type will remain unchanged.");
+                await _consoleService.Write(ex.Message);
+                await _consoleService.Write("The type will remain unchanged.");
             }
         }
 
@@ -265,16 +267,16 @@ public class ExpenseConsole
         var resultUpdate = await _expensesServices.Update(expenseForUpdate);
         if (!resultUpdate.IsSuccess)
         {
-            _consoleService.Write(resultUpdate.Message);
+            await _consoleService.Write(resultUpdate.Message);
         }
         else
         {
-            _consoleService.Write("Expense updated successfully.");
+            await _consoleService.Write("Expense updated successfully.");
         }
     }
     public async Task ConvertExpenseCurrency()
     {
-        var idForExpense = _consoleService.GetValueString("Please enter the id for  the expense to convert currency from Ron:");
+        var idForExpense = await _consoleService.GetValueString("Please enter the id for  the expense to convert currency from Ron:");
         int id;
         try
         {
@@ -282,11 +284,11 @@ public class ExpenseConsole
         }
         catch(Exception ex)
         {
-            _consoleService.Write(ex.Message);
+            await _consoleService.Write(ex.Message);
             return;
         }
 
-        var currencyFromInput = _consoleService.GetValueString("Please enter the currency for convert:");
+        var currencyFromInput = await _consoleService.GetValueString("Please enter the currency for convert:");
         CurrencyType currency;
 
         try
@@ -295,18 +297,18 @@ public class ExpenseConsole
         }
         catch(Exception ex) 
         {
-            _consoleService.Write(ex.Message);
+            await _consoleService.Write(ex.Message);
             return;
         }
         ResultResponse<Expense> resultResponse = await _expenseExchangeService.ConvertExpenseCurrencyFromRon(id, currency);
 
         if (!resultResponse.IsSuccess)
         {
-             _consoleService.Write(resultResponse.Message);
+             await _consoleService.Write(resultResponse.Message);
             return;
         }
         await _expensesServices.Update(resultResponse.Data!);
 
-        _consoleService.Write("The procces was a success!");
+        await _consoleService.Write("The procces was a success!");
     }
 }
