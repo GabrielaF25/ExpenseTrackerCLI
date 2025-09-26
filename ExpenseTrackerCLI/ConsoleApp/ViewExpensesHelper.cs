@@ -24,14 +24,14 @@ public  class ViewExpensesHelper(IConsoleService consoleService)
         return expenses.Where(d => d.CreatedExpense.Year == year);
     }
 
-    public  IEnumerable<Expense> ChooseTheMonthFilter(IEnumerable<Expense> expenses, int? selectedYear)
+    public  IEnumerable<Expense> ChooseTheMonthFilter(IEnumerable<Expense> expenses, int selectedYear)
     {
         if (!expenses.Any()) return expenses;
 
         var now = DateTimeOffset.Now;
         var input = _consoleService.GetValueString("Please enter the month (1-12, Enter = auto):")?.Trim();
 
-        int yearToUse = selectedYear ?? now.Year;
+        int yearToUse = selectedYear == 0?  now.Year : selectedYear;
 
         int monthToUse;
         if (!string.IsNullOrWhiteSpace(input) && int.TryParse(input, out var parsed) && parsed >= 1 && parsed <= 12)

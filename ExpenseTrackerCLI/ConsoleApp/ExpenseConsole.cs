@@ -5,13 +5,14 @@ using ExpenseTrackerCLI.ExchangeRate;
 using ExpenseTrackerCLI.Helpers;
 using ExpenseTrackerCLI.Services.ExpenseChange;
 using ExpenseTrackerCLI.Services.ExpenseService;
+using System;
 namespace ExpenseTrackerCLI.ConsoleApp;
 
 public class ExpenseConsole
 {
     private readonly IExpensesServices _expensesServices;
     private readonly IConsoleService _consoleService;
-    private readonly Dictionary<string, Action> _menuActions;
+    private readonly Dictionary<string, Func<Task>> _menuActions;
     private readonly IExchangeRateProvider _expenseRate;
     private readonly IExpenseExchangeService _expenseExchangeService;
 
@@ -21,7 +22,7 @@ public class ExpenseConsole
     {
         _expensesServices = expensesServices;
         _consoleService = consoleService;
-        _menuActions = new Dictionary<string, Action>
+        _menuActions = new Dictionary<string, Func<Task>>
         {
             { "1", AddExpense },
             { "2", ViewExpenses },
@@ -52,7 +53,7 @@ public class ExpenseConsole
         }
     }
 
-    private async void ViewExpenses()
+    private async Task ViewExpenses()
     {
         var expenses = await _expensesServices.GetAllExpenses();
 
@@ -72,13 +73,14 @@ public class ExpenseConsole
         var answerMonth = _consoleService.GetValueString("Filter by a specific month?(Y/N)");
         if (answerMonth.ToLower().Equals("y"))
         {
-            int? selectYear;
+            int selectYear = 0;
 
             if (expenses.Any())
             {
                 selectYear = expenses.Max(d => d.CreatedExpense.Year);
             }
-            expenses = ViewExpensesHelper.ChooseTheMonthFilter(expenses, selectYear = null);
+
+            expenses = ViewExpensesHelper.ChooseTheMonthFilter(expenses, selectYear);
         }
         if(_consoleService.GetValueString("Do you wanna View the expenses by range of amount? y/n").Equals("y"))
         {
@@ -113,7 +115,7 @@ public class ExpenseConsole
             _consoleService.DisplayExpense(expense);
         }
     }
-    private async void AddExpense()
+    private async Task AddExpense()
     {
         var title = _consoleService.GetValueString("Enter Title:");
 
@@ -163,7 +165,7 @@ public class ExpenseConsole
         }
     }
 
-    private async void DeleteExpense()
+    private async Task DeleteExpense()
     {
         var id = _consoleService.GetValueString("Enter Expense ID to delete:");
         int parsedId;
@@ -186,7 +188,7 @@ public class ExpenseConsole
             _consoleService.Write("Expense deleted successfully.");
         }
     }
-    private async void UpdateExpense()
+    private async Task UpdateExpense()
     {
         var id = _consoleService.GetValueString("Enter Expense ID to update:");
         int parsedId;
@@ -270,7 +272,7 @@ public class ExpenseConsole
             _consoleService.Write("Expense updated successfully.");
         }
     }
-    public async void ConvertExpenseCurrency()
+    public async Task ConvertExpenseCurrency()
     {
         var idForExpense = _consoleService.GetValueString("Please enter the id for  the expense to convert currency from Ron:");
         int id;

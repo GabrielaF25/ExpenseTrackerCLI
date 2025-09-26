@@ -1,4 +1,5 @@
 ﻿using ExpenseTrackerApi.Authentification;
+using ExpenseTrackerApi.ExceptionHandler;
 using ExpenseTrackerApi.Extensions;
 using ExpenseTrackerCLI.ExpensesDatabase;
 using ExpenseTrackerCLI.Extensions;
@@ -27,14 +28,13 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1"
     });
 
-    // 1) definim schema "bearer"
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {
-        Scheme = "bearer",                         // <- obligatoriu lowercase
+        Scheme = "bearer",                         
         BearerFormat = "JWT",
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
-        In = ParameterLocation.Header,            // tip HTTP "bearer", nu ApiKey
+        In = ParameterLocation.Header,            
         Description = "Use the token from /api/auth/login",
         Reference = new OpenApiReference
         {
@@ -43,12 +43,13 @@ builder.Services.AddSwaggerGen(options =>
         }
     };
     options.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
-    // 2) cerem această schemă implicit pentru toate endpoint-urile
+
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         { jwtSecurityScheme, Array.Empty<string>() }
     });
 });
+
 builder.Services.AddDbContext<ExpensesDB>(option =>
     option.UseSqlServer(builder.Configuration.GetConnectionString("ExpensesDB"))
 );
@@ -95,11 +96,14 @@ builder.Services
             },
             OnTokenValidated = ctx =>
             {
-                Console.WriteLine("Token OK pentru: " + ctx.Principal?.Identity?.Name);
+                Console.WriteLine("Token OK for : " + ctx.Principal?.Identity?.Name);
                 return Task.CompletedTask;
             }
         };
     });
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -110,7 +114,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

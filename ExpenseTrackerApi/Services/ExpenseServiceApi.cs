@@ -65,7 +65,7 @@ public class ExpenseServiceApi : IExpenseServiceApi
         if (forCreationDto is null)
             return ResultResponse<Expense>.Failure("Payload is null.", ErrorType.NullObject);
 
-        var expenseExists =  GetExpenseById(id);
+        var expenseExists =  await GetExpenseById(id);
         if (expenseExists is null)
         {
             return ResultResponse<Expense>.Failure($"The expense with id: {id} was not found.", ErrorType.NotFound);
@@ -81,7 +81,7 @@ public class ExpenseServiceApi : IExpenseServiceApi
 
     public async Task<ResultResponse<Expense>> ConvertExpenseCurrencyFromRonTo(int id, CurrencyType currencyType)
     {
-        var expenseExists = GetExpenseById(id);
+        var expenseExists = await GetExpenseById(id);
         if (expenseExists is null)
         {
             return ResultResponse<Expense>.Failure($"The expense with id: {id} was not found.", ErrorType.NotFound);
@@ -94,7 +94,7 @@ public class ExpenseServiceApi : IExpenseServiceApi
 
     public async Task<ResultResponse<Expense>> ConvertExpenseCurrencyFromToRon(int id)
     {
-        var expenseExists = GetExpenseById(id);
+        var expenseExists = await GetExpenseById(id);
         if (expenseExists is null)
         {
             return ResultResponse<Expense>.Failure($"The expense with id: {id} was not found.", ErrorType.NotFound);
@@ -127,6 +127,5 @@ public class ExpenseServiceApi : IExpenseServiceApi
             PageSize = pageSize,
             TotalItems = total
         };
-
     }
 }

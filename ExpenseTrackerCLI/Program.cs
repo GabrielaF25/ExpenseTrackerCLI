@@ -1,15 +1,7 @@
 ﻿// See httpsusing GabrielasLibrary.ConsoleApp;
 using ExpenseTrackerCLI.ConsoleApp;
-using ExpenseTrackerCLI.ConsoleServices;
-using ExpenseTrackerCLI.DateTimeExchangeRate;
-using ExpenseTrackerCLI.Entities;
-using ExpenseTrackerCLI.ExchangeRate;
 using ExpenseTrackerCLI.ExpensesDatabase;
 using ExpenseTrackerCLI.Extensions;
-using ExpenseTrackerCLI.Repositories;
-using ExpenseTrackerCLI.Services.ExpenseService;
-using ExpenseTrackerCLI.ValidateEntities;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

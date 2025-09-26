@@ -11,9 +11,9 @@ public class ExecutorExpenseConsole(ExpenseConsole expenseConsole, IConsoleServi
 
     public void Run()
     {
+        _consoleService.Menu();
         while (true)
-        {
-            _consoleService.Menu();
+        {         
             var choice = _consoleService.Read();
             _logger.LogInformation($" User selected option {choice}");
             if (choice == "6") 
@@ -21,6 +21,7 @@ public class ExecutorExpenseConsole(ExpenseConsole expenseConsole, IConsoleServi
                 Environment.Exit(0);
             }
             _expenseConsole.ExecuteExpenseConsole(choice);
+            _consoleService.Menu();
         }
     }
 }
